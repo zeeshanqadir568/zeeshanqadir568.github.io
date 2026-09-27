@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Appeal Desk — faster denial appeals with a human in control</title>
+<meta name="description" content="Appeal Desk reads a payer denial letter, drafts the appeal and flags deadlines. A named reviewer approves every draft, and every step goes into a tamper-evident audit trail.">
+<meta property="og:title" content="Appeal Desk — denial letter in, reviewed appeal out">
+<meta property="og:description" content="AI-drafted insurance denial appeals for medical billing teams. The AI drafts, a named person decides, every step is recorded. 3-minute demo inside.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://zeeshanqadir568.github.io/appeal-desk/poster.jpg">
+<meta name="theme-color" content="#0B3C55">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --ink:#0F2230;--muted:#52697A;--line:#D3DFE5;--bg:#F2F7F9;--surface:#fff;
+  --teal:#0B7285;--teal-2:#17A2B8;--teal-bg:#DDF0F4;--navy:#0E2F44;
+  --amber:#F2A413;--amber-bg:#FDF0D3;--amber-ink:#7A4B00;--green-ink:#146C46;--green-bg:#D8F2E5;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Figtree","Segoe UI",system-ui,-apple-system,Arial,sans-serif}
+a{color:var(--teal)}
+img,video{max-width:100%;display:block}
+:focus-visible{outline:3px solid var(--amber);outline-offset:3px}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:20px}
+
+.top{background:var(--navy);color:#fff}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:14px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.1rem;color:#fff;text-decoration:none}
+.mark{width:34px;height:34px;border-radius:10px;background:#fff;color:var(--teal);display:grid;place-items:center;font-weight:800}
+.by{color:#BFD9E2;font-size:.92rem;text-decoration:none}
+.by:hover{color:#fff}
+
+.hero{background:linear-gradient(120deg,#0B3C55 0%,#0B7285 55%,#159DB3 100%);color:#fff;padding-block:56px 72px}
+.hero .wrap{display:grid;gap:22px}
+.eyebrow{font-size:.8rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#FFD37A}
+h1{margin:0;font-size:clamp(2.1rem,6vw,3.6rem);line-height:1.05;letter-spacing:-.025em;max-width:16ch}
+h1 span{color:#FFD37A}
+.lede{margin:0;max-width:60ch;font-size:1.12rem;color:#D6EEF3}
+.ctas{display:flex;flex-wrap:wrap;gap:12px}
+.btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;text-decoration:none;padding:14px 22px;border-radius:12px;transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 24px -10px rgba(0,0,0,.4)}
+.btn-primary{background:var(--amber);color:#1a1204}
+.btn-light{background:#fff;color:var(--teal)}
+.btn-ghost{border:1px solid rgba(255,255,255,.5);color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:.85rem;font-weight:600;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3)}
+
+.video{margin-top:-44px}
+.video figure{margin:0;background:#081826;border-radius:18px;overflow:hidden;box-shadow:0 30px 60px -24px rgba(14,47,68,.55)}
+.video video{width:100%;aspect-ratio:16/9;background:#081826}
+.video figcaption{padding:12px 18px;color:#BFD9E2;font-size:.9rem}
+
+section{padding-block:56px 8px}
+h2{margin:0 0 8px;font-size:clamp(1.6rem,3.6vw,2.2rem);line-height:1.15;letter-spacing:-.015em}
+.sub{margin:0 0 26px;color:var(--muted);max-width:62ch}
+
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;counter-reset:s}
+.steps li{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;counter-increment:s}
+.steps li::before{content:counter(s);display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;font-weight:700;font-size:.85rem;margin-bottom:10px}
+.steps b{display:block;color:var(--teal);margin-bottom:2px}
+.steps span{font-size:.93rem;color:var(--muted)}
+
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.card h3{margin:0 0 4px;font-size:1.05rem}
+.card p{margin:0;color:var(--muted);font-size:.95rem}
+
+.offer{background:var(--navy);color:#fff;border-radius:22px;padding:32px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:28px;align-items:center}
+.offer h2{color:#fff}
+.offer p{margin:0 0 10px;color:#CFE6ED}
+.offer ul{margin:0;padding-left:20px;color:#CFE6ED}
+.offer li{margin-bottom:6px}
+.contact{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:20px;display:grid;gap:12px}
+.contact .email{font-weight:700;font-size:1.05rem;color:#fff;user-select:all;overflow-wrap:anywhere}
+.copy{font:inherit;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;border-radius:10px;padding:10px 14px}
+.copy:hover{background:rgba(255,255,255,.12)}
+
+.docs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.doc{display:flex;flex-direction:column;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;text-decoration:none;color:var(--ink);transition:border-color .15s,transform .15s}
+.doc:hover{border-color:var(--teal);transform:translateY(-2px)}
+.doc b{color:var(--teal)}
+.doc span{font-size:.9rem;color:var(--muted)}
+
+.honest{margin-top:14px;background:var(--amber-bg);border:1px solid #EBCB86;color:var(--amber-ink);border-radius:14px;padding:14px 18px;font-size:.95rem}
+
+footer{margin-top:56px;border-top:1px solid var(--line);padding-block:24px 40px;color:var(--muted);font-size:.9rem}
+footer .wrap{display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between}
+
+@media (max-width:900px){
+  .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .offer{grid-template-columns:1fr;padding:24px}
+  .docs{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .steps,.grid2{grid-template-columns:1fr}
+  .hero{padding-block:40px 64px}
+  .btn{width:100%;justify-content:center}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#top"><span class="mark" aria-hidden="true">A</span>Appeal Desk</a>
+    <a class="by" href="https://zeeshanqadir568.github.io/">by Zeeshan Qadir ↗</a>
+  </div>
+</header>
+
+<div class="hero" id="top">
+  <div class="wrap">
+    <div class="eyebrow">For medical billing &amp; RCM teams working US payer denials</div>
+    <h1>Denial letter in. <span>Reviewed appeal out.</span></h1>
+    <p class="lede">Appeal Desk reads a payer denial letter, drafts the appeal, and flags what needs attention first: deadlines, high-value claims, denials that are rarely recoverable. The AI never decides. A named person on your team approves every draft, and every step goes on a record that cannot be quietly changed.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#video">Watch the 3-minute demo</a>
+      <a class="btn btn-light" href="demo.html">Try the live demo</a>
+      <a class="btn btn-ghost" href="#contact">Get free draft appeals</a>
+    </div>
+    <div class="chips">
+      <span class="chip">A human always decides</span>
+      <span class="chip">Patient identifiers removed before AI</span>
+      <span class="chip">Tamper-evident audit trail</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap video" id="video">
+  <figure>
+    <video controls preload="metadata" playsinline poster="poster.jpg">
+      <source src="appeal-desk-demo.mp4" type="video/mp4">
+      Your browser cannot play this video. <a href="appeal-desk-demo.mp4">Download it instead</a>.
+    </video>
+    <figcaption>3-minute walkthrough with captions. Synthetic letters only, no real patient data.</figcaption>
+  </figure>
+</div>
+
+<main class="wrap">
+  <section aria-labelledby="how">
+    <h2 id="how">How it works</h2>
+    <p class="sub">From the letter your team receives to an appeal a named reviewer has approved.</p>
+    <ol class="steps">
+      <li><b>Receive</b><span>The denial letter is loaded into the tool.</span></li>
+      <li><b>De-identify</b><span>Patient names, IDs and dates of birth are replaced with tokens and kept locally.</span></li>
+      <li><b>Draft</b><span>Claim details are extracted and an appeal draft is prepared for the denial type.</span></li>
+      <li><b>Review</b><span>A named reviewer edits, then approves, escalates or discards.</span></li>
+      <li><b>Record</b><span>Every step goes into a fingerprinted audit trail.</span></li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="safe">
+    <h2 id="safe">Built so your team stays in control</h2>
+    <p class="sub">The safeguards US clients ask about when their billing partner starts using AI.</p>
+    <div class="grid2">
+      <div class="card"><h3>The software never decides</h3><p>It cannot approve, deny or submit anything. It only prepares a draft.</p></div>
+      <div class="card"><h3>A named person is accountable</h3><p>No decision is recorded without a reviewer name, including whether they edited the draft.</p></div>
+      <div class="card"><h3>Less data leaves your machine</h3><p>Only de-identified text would reach an AI model. If no patient name field is found, the letter is not sent to the AI at all.</p></div>
+      <div class="card"><h3>No invented facts</h3><p>Where a clinical or billing fact is missing, the draft leaves an [ADD: ...] placeholder for the reviewer.</p></div>
+      <div class="card"><h3>Warnings before drafting</h3><p>Deadlines that are close or passed, high-value claims, and timely-filing denials that need proof.</p></div>
+      <div class="card"><h3>Tamper-evident record</h3><p>Each entry carries a SHA-256 fingerprint of the one before it. Editing an old entry is detected and shown.</p></div>
+    </div>
+    <p class="honest"><b>Stated plainly:</b> the demo uses synthetic letters only. Appeal Desk is not HIPAA-certified, and no real patient data is used until a written agreement (NDA, and a BAA where relevant) is in place. The Trust sheet below lists what is built and what is not yet.</p>
+  </section>
+
+  <section aria-labelledby="docs">
+    <h2 id="docs">Read more</h2>
+    <p class="sub">Short PDFs for owners, operations leads and compliance reviewers.</p>
+    <div class="docs">
+      <a class="doc" href="overview.pdf"><b>Product overview</b><span>What it does, denial types covered, and what it is not.</span></a>
+      <a class="doc" href="trust-and-data-handling.pdf"><b>Trust &amp; data handling</b><span>What is removed, what is stored, and current limitations.</span></a>
+      <a class="doc" href="sample-audit-report.pdf"><b>Sample audit report</b><span>The record a client or auditor would see for one case.</span></a>
+    </div>
+  </section>
+
+  <section id="contact" aria-labelledby="offer">
+    <div class="offer">
+      <div>
+        <h2 id="offer">Try it on your own letters, free</h2>
+        <p>Send 3 to 5 redacted denial letters, or use my synthetic samples. You get draft appeals and an audit report back within 48 hours.</p>
+        <ul>
+          <li>No cost and no commitment for the first batch.</li>
+          <li>If it helps, a short paid pilot on up to 50 letters over 14 days.</li>
+          <li>Based in Rawalpindi, Pakistan: happy to demo in person in Rawalpindi or Islamabad.</li>
+        </ul>
+      </div>
+      <div class="contact">
+        <span>Email Zeeshan Qadir</span>
+        <span class="email" id="email">zeeshanqadir568@gmail.com</span>
+        <button class="copy" id="copy" type="button">Copy email address</button>
+        <a class="btn btn-primary" href="mailto:zeeshanqadir568@gmail.com?subject=Appeal%20Desk%20-%20free%20draft%20appeals">Write an email</a>
+        <a class="by" href="https://www.linkedin.com/in/zeeshanqadir10/">LinkedIn: linkedin.com/in/zeeshanqadir10 ↗</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Appeal Desk · built by <a href="https://zeeshanqadir568.github.io/">Zeeshan Qadir</a>, AI engineer</span>
+    <span><a href="https://zeeshanqadir568.github.io/orbit/">See all projects</a></span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var btn = document.getElementById('copy'), email = document.getElementById('email');
+  btn.addEventListener('click', function () {
+    var text = email.textContent.trim();
+    function selectIt() { var r = document.createRange(); r.selectNodeContents(email); var s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy email address'; }, 1600); }, selectIt);
+    } else { selectIt(); }
+  });
+})();
+</script>
+</body>
+</html>

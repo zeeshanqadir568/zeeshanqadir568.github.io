@@ -1,0 +1,1416 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Appeal Desk - Live Demo</title>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#E9F1F4;--surface:#FFFFFF;--ink:#0F2230;--muted:#52697A;--line:#D3DFE5;
+  --teal:#0B7285;--teal-2:#17A2B8;--teal-bg:#DDF0F4;
+  --navy:#0E2F44;--amber:#F2A413;--amber-bg:#FDF0D3;--amber-ink:#7A4B00;
+  --coral:#E24B4B;--coral-bg:#FCE3E1;--coral-ink:#9B2226;
+  --green:#22A06B;--green-bg:#D8F2E5;--green-ink:#146C46;
+  --violet:#6D5BD0;--violet-bg:#E7E3FA;--blue:#2F6FDE;--blue-bg:#DEE9FC;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+.ic{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em}
+button{position:relative;overflow:hidden;font:600 14px/1 "Segoe UI",system-ui,Arial,sans-serif;padding:11px 18px;border-radius:9px;border:1px solid transparent;cursor:pointer;transition:transform .15s,box-shadow .15s,background .15s;display:inline-flex;align-items:center;gap:8px}
+button:hover:not(:disabled),button.fake-hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 14px rgba(14,47,68,.16)}
+button:active:not(:disabled){transform:translateY(0);box-shadow:none}
+button:disabled{opacity:.45;cursor:default}
+:focus-visible{outline:3px solid #FFB020;outline-offset:2px}
+.btn-go{background:linear-gradient(135deg,var(--teal),var(--teal-2));color:#fff}
+.btn-ok{background:linear-gradient(135deg,#1C9A66,#2FBF85);color:#fff}
+.btn-warn{background:var(--amber-bg);border-color:#EBCB86;color:var(--amber-ink)}
+.btn-bad{background:var(--coral-bg);border-color:#F1B3B0;color:var(--coral-ink)}
+.btn-ghost{background:#fff;border-color:var(--line);color:var(--teal)}
+.btn-go::after,.btn-ok::after{content:"";position:absolute;top:0;left:-70%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-20deg);transition:left .6s;pointer-events:none}
+.btn-go:hover::after,.btn-ok:hover::after,.btn-go.fake-hover::after,.btn-ok.fake-hover::after{left:140%}
+.rip{position:absolute;border-radius:50%;background:rgba(255,255,255,.6);transform:scale(0);animation:ripple .65s ease-out forwards;pointer-events:none}
+.btn-ghost .rip,.btn-warn .rip,.btn-bad .rip{background:rgba(23,162,184,.3)}
+@keyframes ripple{to{transform:scale(1);opacity:0}}
+.nudge{animation:nudge 1.7s ease-out infinite}
+@keyframes nudge{0%{box-shadow:0 0 0 0 rgba(23,162,184,.65)}70%{box-shadow:0 0 0 14px rgba(23,162,184,0)}100%{box-shadow:0 0 0 0 rgba(23,162,184,0)}}
+input,select,textarea{width:100%;font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--teal-2);box-shadow:0 0 0 3px rgba(23,162,184,.2);outline:0}
+textarea{resize:vertical}
+label.lbl{display:block;font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 5px}
+
+/* ---------- pointer effects ---------- */
+#fxCanvas{position:fixed;left:0;top:0;width:100vw;height:100vh;pointer-events:none;z-index:59}
+.cring{position:fixed;left:0;top:0;width:34px;height:34px;margin:-17px 0 0 -17px;border:2px solid rgba(23,162,184,.8);border-radius:50%;pointer-events:none;z-index:60;opacity:0;transition:width .2s,height .2s,margin .2s,background .2s,border-color .2s,opacity .25s}
+.cring.on{opacity:1}
+.cring.big{width:58px;height:58px;margin:-29px 0 0 -29px;background:rgba(23,162,184,.12);border-color:rgba(242,164,19,.9)}
+#flash{position:fixed;inset:0;pointer-events:none;z-index:58;box-shadow:inset 0 0 0 0 rgba(226,75,75,0);transition:box-shadow .25s}
+.flash-on #flash{box-shadow:inset 0 0 150px 46px rgba(226,75,75,.6)}
+
+/* ---------- hero ---------- */
+.hero{position:relative;overflow:hidden;color:#fff;background:linear-gradient(115deg,#0B3C55 0%,#0B7285 52%,#159DB3 100%);padding:26px 20px 64px}
+.hero::before,.hero::after{content:"";position:absolute;border-radius:50%;filter:blur(36px);opacity:.42;animation:drift 15s ease-in-out infinite}
+.hero::before{width:300px;height:300px;background:#F2A413;right:-70px;top:-120px}
+.hero::after{width:260px;height:260px;background:#5EEAD4;left:34%;bottom:-170px;animation-delay:-7s}
+@keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(-28px,18px)}}
+.hero .dots{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.22) 1.2px,transparent 1.4px);background-size:26px 26px;-webkit-mask-image:linear-gradient(100deg,transparent 30%,#000 100%);mask-image:linear-gradient(100deg,transparent 30%,#000 100%);opacity:.55;pointer-events:none}
+.floaters{position:absolute;inset:0;pointer-events:none;transform:translate(calc(var(--px,0)*-26px),calc(var(--py,0)*-16px));transition:transform .25s ease-out}
+.floaters span{position:absolute;display:grid;place-items:center;width:58px;height:58px;border-radius:16px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:26px;backdrop-filter:blur(3px);animation:bob 7s ease-in-out infinite}
+.floaters .f1{right:14%;top:26%}.floaters .f2{right:26%;top:52%;animation-delay:-2.5s;width:48px;height:48px;font-size:22px}.floaters .f3{right:6%;top:58%;animation-delay:-4.5s;width:44px;height:44px;font-size:20px}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-14px) rotate(5deg)}}
+@media(max-width:760px){.floaters{display:none}}
+.hero-in{position:relative;max-width:1180px;margin:0 auto}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:11px;font-weight:700;font-size:1.25rem;cursor:default}
+.mark{position:relative;isolation:isolate;overflow:hidden;width:38px;height:38px;border-radius:11px;background:#fff;color:var(--teal);display:grid;place-items:center;font-weight:800;font-size:20px;box-shadow:0 6px 16px rgba(0,0,0,.25);animation:markIn .9s cubic-bezier(.2,1.5,.4,1) both;transition:transform .4s cubic-bezier(.2,1.7,.4,1),box-shadow .3s}
+.mark::before{content:"";position:absolute;inset:-70%;z-index:-2;background:conic-gradient(from 0deg,#F2A413,transparent 30%,#17A2B8 55%,transparent 80%,#F2A413);animation:spinRing 3.6s linear infinite}
+.mark::after{content:"";position:absolute;inset:2.5px;z-index:-1;border-radius:9px;background:#fff}
+.mark b{position:relative;z-index:1}
+.mark i{position:absolute;top:0;left:-80%;width:50%;height:100%;z-index:2;background:linear-gradient(100deg,transparent,rgba(23,162,184,.4),transparent);transform:skewX(-18deg);animation:shine 5s ease-in-out infinite 1.4s}
+.logo:hover .mark{transform:rotate(-9deg) scale(1.12);box-shadow:0 0 0 7px rgba(255,255,255,.18),0 12px 26px rgba(0,0,0,.35)}
+@keyframes markIn{from{transform:scale(.2) rotate(-120deg);opacity:0}to{transform:none;opacity:1}}
+@keyframes spinRing{to{transform:rotate(360deg)}}
+@keyframes shine{0%,55%{left:-80%}100%{left:170%}}
+.wordmark{color:#fff;background:linear-gradient(90deg,#fff 20%,#FFE2A0 50%,#fff 80%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:wm 5s linear infinite}
+@keyframes wm{to{background-position:-220% 0}}
+.livepill{font-size:11.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);display:inline-flex;align-items:center;gap:8px}
+.livepill i{width:8px;height:8px;border-radius:50%;background:#7CF3B4;box-shadow:0 0 0 0 rgba(124,243,180,.7);animation:pulse 1.8s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 9px rgba(124,243,180,0)}100%{box-shadow:0 0 0 0 rgba(124,243,180,0)}}
+.hero h1{margin:22px 0 8px;font-size:clamp(1.7rem,4.6vw,2.7rem);line-height:1.12;letter-spacing:-.02em;max-width:18ch}
+.hero h1 span{background:linear-gradient(90deg,#FFD37A,#FFF3D0,#FFD37A);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:sweep 4.5s linear infinite}
+@keyframes sweep{to{background-position:-200% 0}}
+.hero p.sub{margin:0 0 16px;max-width:60ch;color:#D6EEF3;font-size:1.02rem}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);transition:transform .2s,background .2s}
+.chip:hover{transform:translateY(-2px);background:rgba(255,255,255,.24)}
+.btn-tour{margin-top:16px;background:#fff;color:var(--teal);border-color:#fff;padding:12px 20px;font-size:15px}
+.btn-tour .ic{color:var(--amber)}
+.rec .btn-tour,.rec .t-controls{display:none!important}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1180px;margin:-38px auto 0;padding-inline:20px;padding-block:0 56px;position:relative}
+.card{position:relative;background:radial-gradient(420px circle at var(--mx,-999px) var(--my,-999px),rgba(23,162,184,.1),transparent 60%),var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 1px 2px rgba(14,47,68,.06),0 10px 28px rgba(14,47,68,.08);animation:rise .45s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.card h2{margin:0 0 12px;font-size:1.08rem;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.step-n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--navy);color:#fff;font-size:13px;font-weight:700}
+.grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:20px;align-items:start;margin-top:20px}
+@media(max-width:920px){.grid{grid-template-columns:minmax(0,1fr)}}
+.row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px}.row>div{flex:1 1 170px}
+.acts{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+.err{color:var(--coral-ink);font-size:13.5px;margin-top:10px;min-height:1px}
+
+/* ---------- coach + stepper ---------- */
+.coach{position:relative;background:radial-gradient(520px circle at var(--mx,-999px) var(--my,-999px),rgba(23,162,184,.1),transparent 60%),var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:0 10px 28px rgba(14,47,68,.12)}
+.stepper{list-style:none;margin:0 0 12px;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stepper li{position:relative;text-align:center;font-size:12.5px;font-weight:600;color:var(--muted);padding-top:38px}
+.stepper li::before,.stepper li::after{content:"";position:absolute;top:13px;left:calc(-50% + 18px);width:calc(100% - 36px);height:3px;border-radius:2px}
+.stepper li::before{background:var(--line)}
+.stepper li::after{background:linear-gradient(90deg,var(--green),#5BD8A2);transform:scaleX(0);transform-origin:left;transition:transform .6s ease}
+.stepper li:first-child::before,.stepper li:first-child::after{display:none}
+.stepper li .dot{position:absolute;top:0;left:50%;transform:translateX(-50%);width:28px;height:28px;border-radius:50%;background:#fff;border:2px solid var(--line);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--muted);transition:all .3s;z-index:1}
+.stepper li.done{color:var(--green-ink)}
+.stepper li.done .dot{background:var(--green);border-color:var(--green);color:#fff;animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
+.stepper li.done::after,.stepper li.active::after{transform:scaleX(1)}
+.stepper li.active{color:var(--teal)}
+.stepper li.active .dot{border-color:var(--teal);color:var(--teal);animation:pulse2 1.8s infinite}
+@keyframes pulse2{0%{box-shadow:0 0 0 0 rgba(11,114,133,.5)}70%{box-shadow:0 0 0 10px rgba(11,114,133,0)}100%{box-shadow:0 0 0 0 rgba(11,114,133,0)}}
+.tip{display:flex;align-items:center;gap:11px;padding:11px 14px;border-radius:11px;background:var(--teal-bg);color:#0A4F5E;font-weight:600;font-size:14.5px;transition:background .3s,color .3s}
+.tip.alert{background:var(--coral-bg);color:var(--coral-ink)}
+.tip.win{background:var(--green-bg);color:var(--green-ink)}
+.tip .ic{font-size:1.4em}
+
+/* ---------- letter card ---------- */
+.tabs{display:inline-flex;background:var(--bg);border-radius:10px;padding:4px;gap:4px;margin-bottom:10px}
+.tabs button{padding:8px 13px;font-size:13px;background:transparent;color:var(--muted);border-radius:7px}
+.tabs button[aria-selected="true"]{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(14,47,68,.15)}
+.tabs button:hover:not(:disabled){transform:none;box-shadow:none}
+#letter{min-height:300px;font:13px/1.55 Consolas,"Courier New",monospace}
+.redacted{min-height:300px;max-height:420px;overflow:auto;white-space:pre-wrap;padding:12px;border:1px dashed #9FB8C4;border-radius:9px;background:#F5FAFC;font:13px/1.55 Consolas,"Courier New",monospace}
+mark.tok{background:linear-gradient(135deg,#6D5BD0,#8C6DF0);color:#fff;border-radius:5px;padding:1px 6px;font-weight:600;font-size:12px;animation:tokIn .5s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes tokIn{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+.redacted-note{margin:10px 0 0;font-size:13.5px;color:var(--muted);display:flex;gap:8px;align-items:flex-start}
+.redacted-note .ic{color:var(--violet);margin-top:2px}
+
+/* ---------- review card ---------- */
+.busy{padding:8px 4px 4px}
+.busy h3{margin:0 0 10px;font-size:1rem}
+.busy ol{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.busy li{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:var(--bg);color:var(--muted);font-weight:600;position:relative;overflow:hidden}
+.busy li:not(.ok)::after{content:"";position:absolute;top:0;left:-40%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(23,162,184,.22),transparent);animation:scan 1s linear infinite}
+@keyframes scan{to{left:120%}}
+.busy li .spin{width:18px;height:18px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--teal);animation:spin .7s linear infinite}
+.busy li.ok{background:var(--green-bg);color:var(--green-ink)}
+.busy li.ok .spin{border:0;animation:none;background:var(--green);position:relative}
+.busy li.ok .spin::after{content:"";position:absolute;left:6px;top:3px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:5px 11px;border-radius:999px;background:var(--blue-bg);color:#1E4FA8;text-transform:capitalize}
+.badge.approved{background:var(--green-bg);color:var(--green-ink)}
+.badge.escalated{background:var(--amber-bg);color:var(--amber-ink)}
+.badge.discarded{background:var(--coral-bg);color:var(--coral-ink)}
+.badge.pop{animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.6)}to{transform:scale(1)}}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
+@media(max-width:560px){.tiles{grid-template-columns:minmax(0,1fr)}}
+.tile{border:1px solid var(--line);border-radius:13px;padding:12px;display:flex;align-items:center;gap:12px;background:radial-gradient(260px circle at var(--mx,-999px) var(--my,-999px),rgba(23,162,184,.14),transparent 65%),linear-gradient(180deg,#fff,#F6FAFC);transition:transform .18s ease-out,box-shadow .2s;min-width:0;transform:perspective(700px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(var(--ty,0px))}
+.tile:hover,.tile.lift{--ty:-3px;box-shadow:0 10px 22px rgba(14,47,68,.13)}
+.tile small{display:block;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.tile b{display:block;font-size:1.2rem;line-height:1.2;overflow-wrap:anywhere}
+.ring{position:relative;width:64px;height:64px;flex:none}
+.ring svg{transform:rotate(-90deg)}
+.ring .num{position:absolute;inset:0;display:grid;place-items:center;font-weight:800;font-size:1.05rem}
+.ring circle{fill:none;stroke-width:7;stroke-linecap:round}
+.ring .bg{stroke:var(--line)}
+.ring .fg{animation:ringFill 1.1s cubic-bezier(.2,.8,.2,1) both}
+@keyframes ringFill{from{stroke-dashoffset:var(--full)}}
+.tile-ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;flex:none;font-size:22px}
+.c50{background:var(--blue-bg);color:#1E4FA8}.c16{background:var(--amber-bg);color:var(--amber-ink)}.c29{background:var(--coral-bg);color:var(--coral-ink)}.c97{background:var(--violet-bg);color:#4B3CB0}.cx{background:var(--bg);color:var(--muted)}
+.money{background:var(--green-bg);color:var(--green-ink)}
+.flags{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:8px}
+.flag{display:flex;gap:11px;align-items:flex-start;padding:10px 12px;border-radius:11px;font-size:14px;font-weight:500;animation:rise .4s ease both}
+.flag .ic{font-size:1.35em;margin-top:1px}
+.flag.info{background:var(--teal-bg);color:#0A4F5E}
+.flag.med{background:var(--amber-bg);color:var(--amber-ink)}
+.flag.high{background:var(--coral-bg);color:var(--coral-ink)}
+.flag.high .ic{animation:wobble 2.2s ease-in-out infinite}
+@keyframes wobble{0%,88%,100%{transform:rotate(0)}92%{transform:rotate(-14deg)}96%{transform:rotate(12deg)}}
+dl.fields{display:grid;grid-template-columns:auto 1fr;gap:0;margin:0 0 12px;border:1px solid var(--line);border-radius:11px;overflow:hidden}
+dl.fields dt,dl.fields dd{margin:0;padding:8px 12px;border-top:1px solid var(--line);font-size:13.5px}
+dl.fields dt:first-of-type,dl.fields dt:first-of-type+dd{border-top:0}
+dl.fields dt{background:#F3F8FA;color:var(--muted);font-weight:600;text-transform:capitalize;padding-right:18px}
+.strategy{margin:12px 0;padding:12px 14px;border-radius:11px;background:var(--violet-bg);color:#3B2E96;font-size:14px}
+.docs{display:grid;gap:6px;margin:0 0 14px}
+.chk{display:flex;align-items:center;gap:10px;padding:8px 11px;border:1px solid var(--line);border-radius:9px;cursor:pointer;font-size:14px;transition:background .15s,transform .15s}
+.chk:hover,.chk.fake-hover{background:var(--bg);transform:translateX(3px)}
+.chk input{width:18px;height:18px;accent-color:var(--green);margin:0}
+.chk.on{background:var(--green-bg);border-color:#A9DFC5;text-decoration:line-through;text-decoration-color:rgba(20,108,70,.5)}
+.docsum{font-size:12.5px;color:var(--muted);margin:-4px 0 12px}
+#draft{min-height:330px;font:13.5px/1.6 Consolas,"Courier New",monospace}
+.done-ring{width:34px;height:34px}
+.done-ring circle{fill:none;stroke:var(--green);stroke-width:3;stroke-dasharray:100;stroke-dashoffset:100;animation:draw .6s ease forwards}
+.done-ring path{fill:none;stroke:var(--green);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:30;stroke-dashoffset:30;animation:draw .4s .45s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+
+/* ---------- audit chain ---------- */
+.audit{margin-top:20px}
+.banner{display:flex;align-items:center;gap:12px;padding:12px 15px;border-radius:12px;font-weight:700;margin-bottom:14px}
+.banner .ic{font-size:1.6em}
+.banner.ok{background:var(--green-bg);color:var(--green-ink)}
+.banner.ok .ic{animation:shieldPulse 2.4s ease-in-out infinite}
+@keyframes shieldPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+.banner.bad{background:var(--coral-bg);color:var(--coral-ink);animation:shake .5s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.chain{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:6px 2px 14px}
+.block{flex:0 0 210px;border:2px solid var(--line);border-radius:14px;padding:12px;background:#fff;position:relative;transition:transform .2s,box-shadow .2s,border-color .3s,background .3s}
+.block.new{animation:slidein .5s ease both}
+.block:hover,.block.fake-hover{transform:translateY(-3px);box-shadow:0 10px 22px rgba(14,47,68,.13)}
+@keyframes slidein{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
+.block .top{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.block .no{font:700 12px Consolas,monospace;padding:3px 8px;border-radius:6px;background:var(--navy);color:#fff}
+.block .ev-name{font-weight:700;font-size:13.5px;line-height:1.25}
+.block .who{font-size:12.5px;color:var(--muted);margin-bottom:8px}
+.block .h{font:12px/1.5 Consolas,monospace;color:var(--muted)}
+.block .h b{color:var(--ink);background:var(--teal-bg);border-radius:4px;padding:0 5px}
+.block.bad{border-color:var(--coral);background:var(--coral-bg);animation:shake .5s}
+.block.bad .h b{background:#F6B9B6;color:var(--coral-ink)}
+.link{flex:0 0 44px;align-self:center;height:4px;background:var(--teal-2);position:relative;border-radius:2px}
+.link::after{content:"";position:absolute;right:-2px;top:-4px;border:6px solid transparent;border-left:9px solid var(--teal-2);border-right:0}
+.link::before{content:"";position:absolute;left:-4px;top:-3px;width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 0 9px 3px rgba(23,162,184,.85);animation:flow 1.5s linear infinite}
+@keyframes flow{to{left:38px}}
+.link.bad{background:repeating-linear-gradient(90deg,var(--coral) 0 6px,transparent 6px 11px)}
+.link.bad::after{border-left-color:var(--coral)}
+.link.bad::before{display:none}
+.explain{font-size:13.5px;color:var(--muted);margin:2px 0 0}
+.tamper{margin-top:16px;padding:14px 16px;border-radius:13px;background:repeating-linear-gradient(-45deg,#FFF7F6,#FFF7F6 12px,#FDEEEC 12px,#FDEEEC 24px);border:1px dashed #E9A7A2}
+.tamper h3{margin:0 0 4px;font-size:1rem;color:var(--coral-ink);display:flex;gap:8px;align-items:center}
+.tamper p{margin:0 0 10px;font-size:14px}
+.small{font-size:12.5px;color:var(--muted);margin-top:10px;min-height:1em}
+
+/* ---------- report, cta, toast ---------- */
+#report{background:#fff;border:1px solid var(--line);border-radius:14px;padding:24px;margin-top:20px}
+#report h2{font-size:1.3rem;margin:0 0 6px}
+#report h3{font-size:1.02rem;margin:16px 0 6px}
+#report table{width:100%;border-collapse:collapse;font-size:13.5px;margin-bottom:8px}
+#report td,#report th{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+#report th{background:#F3F8FA;width:36%}
+#report table.a th{width:auto}
+#report pre{white-space:pre-wrap;background:#F6F9FA;border:1px solid var(--line);padding:12px;font:13px/1.5 Consolas,monospace;border-radius:8px}
+#report .h{font-family:Consolas,monospace;font-size:12px}
+.cta{position:relative;margin-top:24px;border-radius:18px;padding:24px 26px;color:#fff;background:linear-gradient(120deg,#0E2F44,#0B5C73 60%,#0B7285);overflow:hidden}
+.cta::after{content:"";position:absolute;right:-50px;top:-70px;width:220px;height:220px;border-radius:50%;background:#F2A413;opacity:.25;filter:blur(30px)}
+.cta h2{margin:0 0 6px;font-size:1.35rem}
+.cta p{margin:0;color:#CFE6ED;max-width:64ch;position:relative}
+.cta a{color:#FFD37A}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,30px);opacity:0;background:var(--navy);color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;box-shadow:0 12px 30px rgba(0,0,0,.3);transition:all .3s;z-index:20;max-width:calc(100vw - 32px);display:flex;gap:10px;align-items:center;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.rec .toast{bottom:150px}
+#kp{display:none}
+.rec #kp{display:block;position:fixed;left:0;bottom:0;width:3px;height:3px;z-index:1;animation:kp 1s steps(2,end) infinite}
+@keyframes kp{0%{background:#E9F1F4}100%{background:#EAF2F5}}
+
+/* ---------- guided tour ---------- */
+#tour{position:fixed;inset:0;z-index:70;pointer-events:none}
+.t-spot{position:fixed;left:0;top:0;width:0;height:0;border-radius:14px;opacity:0;pointer-events:none;box-shadow:0 0 0 100vmax rgba(7,24,36,.6),0 0 0 3px rgba(255,211,122,.95),0 0 28px 6px rgba(255,211,122,.5);transition:left .5s cubic-bezier(.3,.9,.3,1),top .5s cubic-bezier(.3,.9,.3,1),width .5s cubic-bezier(.3,.9,.3,1),height .5s cubic-bezier(.3,.9,.3,1),opacity .3s}
+.t-spot.on{opacity:1}
+.t-cursor{position:fixed;left:0;top:0;width:32px;height:32px;transform:translate(-100px,-100px);will-change:transform;pointer-events:none}
+.t-cursor svg{width:32px;height:32px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.5));transition:transform .12s;transform-origin:3px 2px}
+.t-cursor.press svg{transform:scale(.8)}
+.t-cursor::before{content:"";position:absolute;left:-14px;top:-16px;width:34px;height:34px;border-radius:50%;background:radial-gradient(circle,rgba(255,211,122,.55),transparent 68%);z-index:-1}
+.t-ring{position:fixed;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;border:3px solid #FFD37A;pointer-events:none;animation:tRing .75s ease-out forwards}
+@keyframes tRing{from{transform:scale(.4);opacity:1}to{transform:scale(4.4);opacity:0}}
+.t-caption{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);opacity:0;width:min(960px,calc(100vw - 32px));background:rgba(8,25,38,.92);color:#fff;border-radius:16px;padding:12px 22px 15px;box-shadow:0 14px 40px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.14);transition:opacity .35s,transform .35s}
+.t-caption.on{opacity:1;transform:translateX(-50%)}
+.t-scene{display:block;font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#FFD37A;margin-bottom:3px}
+.t-caption p{margin:0;font-size:19px;line-height:1.42;font-weight:600}
+.t-progress{position:fixed;left:0;top:0;right:0;height:5px;background:rgba(255,255,255,.2)}
+.t-progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#17A2B8,#F2A413);transition:width .5s}
+.t-card{position:fixed;inset:0;display:grid;place-items:center;text-align:center;color:#fff;background:radial-gradient(circle at 80% 10%,rgba(242,164,19,.35),transparent 40%),linear-gradient(125deg,#0B3C55,#0B7285 55%,#159DB3);opacity:0;pointer-events:none;transition:opacity .6s;padding:24px}
+.t-card.on{opacity:1}
+.t-card .m{width:78px;height:78px;border-radius:22px;background:#fff;color:var(--teal);display:grid;place-items:center;font-size:44px;font-weight:800;margin:0 auto 18px;box-shadow:0 14px 34px rgba(0,0,0,.3);animation:markIn .9s cubic-bezier(.2,1.5,.4,1) both}
+.t-card h2{font-size:clamp(2rem,5vw,3.6rem);margin:0 0 10px;letter-spacing:-.02em;line-height:1.1}
+.t-card p{font-size:1.3rem;color:#D6EEF3;margin:6px 0}
+.t-card p.k{color:#FFD37A;font-weight:700}
+.t-card small{display:block;margin-top:14px;font-size:1rem;color:#B5D6DF}
+.t-controls{position:fixed;right:16px;top:16px;display:flex;gap:8px;pointer-events:auto}
+.t-controls button{padding:8px 12px;font-size:13px;background:rgba(8,25,38,.88);color:#fff;border:1px solid rgba(255,255,255,.28)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media print{
+  body{background:#fff}
+  #fxCanvas,.cring,#flash,#tour{display:none!important}
+  body.report-open .hero,body.report-open .wrap>*:not(#report),body.report-open .toast{display:none!important}
+  body.report-open .wrap{margin:0;padding:0}
+  body.report-open #report{border:0;padding:0;margin:0}
+  .noprint{display:none!important}
+}
+</style>
+</head>
+<body>
+<canvas id="fxCanvas" aria-hidden="true"></canvas>
+<div class="cring" id="cring" aria-hidden="true"></div>
+<div id="flash" aria-hidden="true"></div>
+<div id="kp" aria-hidden="true"></div>
+
+<header class="hero">
+  <div class="dots" aria-hidden="true"></div>
+  <div class="floaters" aria-hidden="true"><span class="f1" data-ico="shield"></span><span class="f2" data-ico="doc"></span><span class="f3" data-ico="clock"></span></div>
+  <div class="hero-in">
+    <div class="brand">
+      <div class="logo"><div class="mark" aria-hidden="true"><i></i><b>A</b></div><span class="wordmark">Appeal Desk</span></div>
+      <span class="livepill"><i></i>Live demo</span>
+    </div>
+    <h1>Denial letter in. <span>Reviewed appeal out.</span></h1>
+    <p class="sub">Appeal Desk drafts the appeal, a named person on your team decides, and every step goes on a record that cannot be quietly changed.</p>
+    <div class="chips">
+      <span class="chip"><span data-ico="lock"></span>Runs in your browser</span>
+      <span class="chip"><span data-ico="doc"></span>Synthetic letters only</span>
+      <span class="chip"><span data-ico="user"></span>A human always decides</span>
+    </div>
+    <button class="btn-tour" id="tourBtn" type="button"><span data-ico="play"></span>Watch the guided tour</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="coach" aria-label="Guide">
+    <ol class="stepper" id="stepper">
+      <li><span class="dot">1</span>Letter</li>
+      <li><span class="dot">2</span>Draft</li>
+      <li><span class="dot">3</span>Decision</li>
+      <li><span class="dot">4</span>Record</li>
+    </ol>
+    <div class="tip" id="tip" role="status" aria-live="polite"><span id="tipIc"></span><span id="tipText"></span></div>
+  </section>
+
+  <div class="grid">
+    <section class="card" id="letterCard">
+      <h2><span class="step-n">1</span>The denial letter</h2>
+      <div class="row">
+        <div><label class="lbl" for="actor">Reviewer name</label><input id="actor" autocomplete="off" placeholder="Your name" value="Demo Reviewer"></div>
+        <div><label class="lbl" for="sample">Sample letter</label><select id="sample"></select></div>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Letter view">
+        <button type="button" role="tab" id="tabOrig" aria-selected="true">Original letter</button>
+        <button type="button" role="tab" id="tabRed" aria-selected="false">What an AI would see</button>
+      </div>
+      <div id="paneOrig"><label class="lbl" for="letter">Letter text (you can edit it)</label><textarea id="letter"></textarea></div>
+      <div id="paneRed" hidden>
+        <div class="redacted" id="redacted" aria-live="polite"></div>
+        <p class="redacted-note"><span data-ico="shield"></span><span id="redNote"></span></p>
+      </div>
+      <div class="acts">
+        <button class="btn-go" id="go"><span data-ico="spark"></span>Analyze &amp; draft appeal</button>
+        <button class="btn-ghost" id="reset">Reset demo</button>
+      </div>
+      <div class="err" id="err" role="alert"></div>
+    </section>
+
+    <section class="card" id="out" hidden>
+      <h2><span class="step-n">2</span>Review <span class="badge" id="status"></span><span id="doneRing"></span></h2>
+      <div class="busy" id="busy" hidden>
+        <h3>Working on it...</h3>
+        <ol id="busyList"></ol>
+      </div>
+      <div id="result">
+        <div class="tiles" id="tiles"></div>
+        <ul class="flags" id="flags"></ul>
+        <dl class="fields" id="fields"></dl>
+        <div class="strategy" id="strategy"></div>
+        <label class="lbl">Documents to attach (tick them off)</label>
+        <div class="docs" id="docs"></div>
+        <div class="docsum" id="docsum"></div>
+        <label class="lbl" for="draft">Draft letter (edit freely)</label>
+        <textarea id="draft"></textarea>
+        <div class="row" style="margin-top:12px"><div><label class="lbl" for="note">Note for the record (optional)</label><input id="note" autocomplete="off"></div></div>
+        <div class="acts">
+          <button class="btn-ok" id="approve"><span data-ico="check"></span>Approve for submission</button>
+          <button class="btn-warn" id="escalate">Escalate to senior reviewer</button>
+          <button class="btn-bad" id="discard">Discard draft</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="card audit" id="auditbox" hidden>
+    <h2><span class="step-n">3</span>The record</h2>
+    <div class="banner ok" id="banner"></div>
+    <div class="chain" id="chain" aria-label="Audit chain"></div>
+    <p class="explain">Each block carries a fingerprint (SHA-256) that includes the fingerprint before it. Change anything in an old block and every link after it stops matching.</p>
+    <div class="acts">
+      <button class="btn-ghost" id="verify"><span data-ico="check"></span>Verify record</button>
+      <button class="btn-ghost" id="viewreport"><span data-ico="doc"></span>View audit report</button>
+    </div>
+    <div class="tamper" id="tamperBox">
+      <h3><span data-ico="alert"></span>Try to cheat</h3>
+      <p>Simulate someone quietly editing the record after the fact, without redoing its fingerprint.</p>
+      <div class="acts" style="margin-top:0"><button class="btn-bad" id="tamper">Edit an entry behind the scenes</button><button class="btn-ghost" id="undo" disabled>Undo the edit</button></div>
+      <div class="small" id="tamperNote"></div>
+    </div>
+  </section>
+
+  <section id="report" hidden aria-label="Audit report"></section>
+
+  <div class="cta noprint">
+    <h2>Want to see it on your own letters?</h2>
+    <p>Send a few redacted denial letters and get drafts plus an audit report back within 48 hours. Contact us at <a href="mailto:zeeshanqadir568@gmail.com">zeeshanqadir568@gmail.com</a>.</p>
+  </div>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* Appeal Desk demo core: a line-for-line port of the Python server's offline logic.
+   Runs in the browser (no network) and in Node (for the parity test against server.py). */
+(function (root) {
+'use strict';
+
+var HIGH_VALUE = 5000;
+var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var MONTHS_SHORT = MONTHS.map(function (m) { return m.slice(0, 3); });
+
+/* ---------- SHA-256 (pure JS, synchronous, UTF-8) ---------- */
+var K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+function utf8(str) {
+  if (typeof TextEncoder !== 'undefined') return Array.from(new TextEncoder().encode(str));
+  return Array.from(Buffer.from(str, 'utf8'));
+}
+function sha256(str) {
+  var bytes = utf8(str), l = bytes.length, bitLen = l * 8;
+  bytes.push(0x80);
+  while (bytes.length % 64 !== 56) bytes.push(0);
+  var hi = Math.floor(bitLen / 0x100000000), lo = bitLen >>> 0;
+  [hi, lo].forEach(function (w) { bytes.push((w >>> 24) & 255, (w >>> 16) & 255, (w >>> 8) & 255, w & 255); });
+  var H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  var w = new Array(64);
+  function rotr(x, n) { return (x >>> n) | (x << (32 - n)); }
+  for (var i = 0; i < bytes.length; i += 64) {
+    for (var t = 0; t < 16; t++) w[t] = (bytes[i+4*t] << 24) | (bytes[i+4*t+1] << 16) | (bytes[i+4*t+2] << 8) | bytes[i+4*t+3];
+    for (t = 16; t < 64; t++) {
+      var s0 = rotr(w[t-15], 7) ^ rotr(w[t-15], 18) ^ (w[t-15] >>> 3);
+      var s1 = rotr(w[t-2], 17) ^ rotr(w[t-2], 19) ^ (w[t-2] >>> 10);
+      w[t] = (w[t-16] + s0 + w[t-7] + s1) | 0;
+    }
+    var a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+    for (t = 0; t < 64; t++) {
+      var S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+      var ch = (e & f) ^ (~e & g);
+      var t1 = (h + S1 + ch + K[t] + w[t]) | 0;
+      var S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+      var maj = (a & b) ^ (a & c) ^ (b & c);
+      var t2 = (S0 + maj) | 0;
+      h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+    }
+    H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c) | 0; H[3] = (H[3] + d) | 0;
+    H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
+  }
+  return H.map(function (x) { return ('00000000' + (x >>> 0).toString(16)).slice(-8); }).join('');
+}
+
+/* ---------- audit chain ---------- */
+function canon(o) {
+  if (Array.isArray(o)) return '[' + o.map(canon).join(',') + ']';
+  if (o && typeof o === 'object') return '{' + Object.keys(o).sort().map(function (k) { return JSON.stringify(k) + ':' + canon(o[k]); }).join(',') + '}';
+  return JSON.stringify(o);
+}
+function createAuditLog() {
+  var events = [];
+  return {
+    events: events,
+    log: function (caseId, type, actor, data, now) {
+      var prev = events.length ? events[events.length - 1].hash : new Array(65).join('0');
+      var ev = { seq: events.length + 1, ts: (now || new Date()).toISOString().slice(0, 19) + '+00:00', case_id: caseId, type: type, actor: actor, data: data, prev_hash: prev };
+      ev.hash = sha256(prev + canon(ev));
+      events.push(ev);
+      return ev;
+    },
+    verify: function () {
+      var prev = new Array(65).join('0');
+      for (var i = 0; i < events.length; i++) {
+        var ev = events[i], body = {};
+        Object.keys(ev).forEach(function (k) { if (k !== 'hash') body[k] = ev[k]; });
+        if (ev.seq !== i + 1 || ev.prev_hash !== prev || sha256(prev + canon(body)) !== ev.hash) return { ok: false, events: events.length, broken_at: i + 1 };
+        prev = ev.hash;
+      }
+      return { ok: true, events: events.length, broken_at: null };
+    }
+  };
+}
+
+/* ---------- de-identification ---------- */
+var PATTERNS = [
+  ['SSN', /\b\d{3}-\d{2}-\d{4}\b/g],
+  ['EMAIL', /\b[\w.+-]+@[\w-]+\.[\w.]+\b/g],
+  ['PHONE', /\(?\b\d{3}\)?[-. ]\d{3}[-. ]\d{4}\b/g]
+];
+var LABELLED = [
+  ['PATIENT_NAME', 'Patient(?: Name)?'],
+  ['MEMBER_ID', 'Member ID|Subscriber ID'],
+  ['DOB', 'Date of Birth|DOB']
+];
+function deidentify(text) {
+  var mapping = {};
+  LABELLED.forEach(function (pair) {
+    var tag = pair[0];
+    var pat = new RegExp('(^[ \\t]*(?:' + pair[1] + ')[ \\t]*:[ \\t]*)(.+?)[ \\t]*$', 'gim');
+    text = text.replace(pat, function (m, pre, val) {
+      if (!('[' + tag + ']' in mapping)) mapping['[' + tag + ']'] = val;
+      return pre + '[' + tag + ']';
+    });
+  });
+  Object.keys(mapping).forEach(function (token) { text = text.split(mapping[token]).join(token); });
+  PATTERNS.forEach(function (p) {
+    var n = 0;
+    text = text.replace(p[1], function (m) { n++; var tok = '[' + p[0] + '_' + n + ']'; mapping[tok] = m; return tok; });
+  });
+  return { clean: text, mapping: mapping };
+}
+function reidentify(value, mapping) {
+  if (typeof value !== 'string') return value;
+  Object.keys(mapping).forEach(function (t) { value = value.split(t).join(mapping[t]); });
+  return value;
+}
+
+/* ---------- extraction ---------- */
+var LABELS = {
+  payer: ['Payer', 'Health Plan', 'Insurance Company'],
+  claim_number: ['Claim Number', 'Claim #', 'Claim No'],
+  date_of_service: ['Date of Service', 'DOS'],
+  billed_amount: ['Billed Amount', 'Amount Billed', 'Total Charges'],
+  denial_code: ['Denial Code', 'Reason Code', 'CARC'],
+  denial_reason: ['Denial Reason', 'Reason'],
+  appeal_deadline: ['Appeal Deadline', 'Appeal By', 'Deadline to Appeal'],
+  procedure: ['Procedure', 'Service', 'CPT'],
+  provider: ['Provider', 'Billing Provider', 'Facility']
+};
+function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function grab(text, labels) {
+  for (var i = 0; i < labels.length; i++) {
+    var m = new RegExp('^[ \\t]*' + escRe(labels[i]) + '[ \\t]*:[ \\t]*(.+?)[ \\t]*$', 'im').exec(text);
+    if (m) return m[1];
+  }
+  return '';
+}
+function extractOffline(text) {
+  var out = {};
+  Object.keys(LABELS).forEach(function (k) { out[k] = grab(text, LABELS[k]); });
+  return out;
+}
+function carcNumber(code) {
+  var m = /(?:CO|PR|OA|CR|PI)?[- ]?(\d{1,3})/i.exec(code || '');
+  return m ? m[1] : '';
+}
+
+var PLAYBOOK = {
+  '50': {
+    category: 'Medical necessity',
+    strategy: 'Formal clinical appeal. Request a peer-to-peer review with a clinician before a final decision.',
+    docs: ['Physician letter of medical necessity', 'Clinical notes covering the date of service', 'Records of prior conservative treatment', 'Ordering-provider rationale and orders', 'Payer medical-policy criteria the record satisfies'],
+    body: 'We request reconsideration because the service was medically necessary for this patient. [ADD: two or three sentences from the clinical record on symptoms, duration, exam findings and treatment already tried.] The enclosed records address each criterion in the cited payer policy. Where the denial rests on medical necessity, we also request a peer-to-peer discussion before a final decision.'
+  },
+  '16': {
+    category: 'Missing or invalid information',
+    strategy: 'Not a true appeal. Correct the data the payer flagged and resubmit a corrected claim.',
+    docs: ['Corrected claim (CMS-1500 or UB-04)', 'The specific missing item named in the denial', 'Original claim number for cross-reference'],
+    body: 'The denial cites missing or invalid information. We are resubmitting a corrected claim that supplies [ADD: the exact item named in the denial]. Please process the corrected claim against the original claim number above and confirm receipt.'
+  },
+  '29': {
+    category: 'Timely filing',
+    strategy: 'Appeal only with proof the claim was filed in time. Without that proof this is likely not recoverable.',
+    docs: ['Clearinghouse acceptance report showing the original submission date', 'Payer acknowledgement (277CA) or portal confirmation', 'Log of prior submission attempts'],
+    body: 'We dispute the timely filing denial. The claim was first submitted on [ADD: original submission date], within the filing limit, as shown by the enclosed acceptance records. We ask that the claim be reprocessed using the original submission date.'
+  },
+  '97': {
+    category: 'Bundled service',
+    strategy: 'Appeal with documentation that the service was separate and distinct, plus modifier support.',
+    docs: ['Procedure notes showing a separate, distinct service', 'Modifier documentation (for example 59 or XS)', 'Payer bundling policy reference'],
+    body: 'The service was separate and distinct from the other billed procedure. [ADD: how the sites, sessions or indications differed.] The enclosed notes and modifier documentation support separate payment.'
+  }
+};
+var GENERIC = {
+  category: 'Other denial',
+  strategy: 'Review the denial reason with a senior biller before choosing between appeal and correction.',
+  docs: ['Copy of the denial notice', 'Supporting clinical or billing records for the date of service'],
+  body: 'We request reconsideration of this denial. [ADD: the specific reason the denial is incorrect and the supporting facts.]'
+};
+function playbookFor(code) { return PLAYBOOK[carcNumber(code)] || GENERIC; }
+
+function longDate(d) { return MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear(); }
+function buildOfflineLetter(f, pb, today) {
+  var docs = pb.docs.map(function (d, i) { return '  ' + (i + 1) + '. ' + d; }).join('\n');
+  return longDate(today) + '\n\n' +
+    (f.payer || '[ADD: payer]') + ' - Appeals Department\n\n' +
+    'Re: ' + (carcNumber(f.denial_code) === '16' ? 'Corrected claim' : 'Appeal of claim denial') + '\n' +
+    'Claim number: ' + (f.claim_number || '[ADD]') + '\n' +
+    'Patient: [PATIENT_NAME]   Member ID: [MEMBER_ID]\n' +
+    'Date of service: ' + (f.date_of_service || '[ADD]') + '\n' +
+    'Service: ' + (f.procedure || '[ADD]') + '\n' +
+    'Billed amount: ' + (f.billed_amount || '[ADD]') + '\n' +
+    'Denial: ' + (f.denial_code || '') + ' ' + (f.denial_reason || '') + '\n\n' +
+    'To the Appeals Reviewer,\n\n' +
+    'On behalf of ' + (f.provider || '[ADD: provider]') + ':\n\n' + pb.body + '\n\n' +
+    'Enclosures:\n' + docs + '\n\n' +
+    'Sincerely,\n[ADD: reviewer name and credentials]\n';
+}
+
+/* ---------- flags ---------- */
+function parseDate(text) {
+  text = (text || '').trim();
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
+  if (m) return mk(+m[1], +m[2], +m[3]);
+  m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(text);
+  if (m) return mk(+m[3], +m[1], +m[2]);
+  m = /^([A-Za-z]+) (\d{1,2}), (\d{4})$/.exec(text);
+  if (m) {
+    var name = m[1].toLowerCase(), idx = -1;
+    MONTHS.forEach(function (mm, i) { if (mm.toLowerCase() === name) idx = i; });
+    if (idx < 0) MONTHS_SHORT.forEach(function (mm, i) { if (mm.toLowerCase() === name) idx = i; });
+    if (idx >= 0) return mk(+m[3], idx + 1, +m[2]);
+  }
+  return null;
+}
+function mk(y, mo, d) {
+  var dt = new Date(y, mo - 1, d);
+  return (dt.getFullYear() === y && dt.getMonth() === mo - 1 && dt.getDate() === d) ? dt : null;
+}
+function parseAmount(text) {
+  var m = /[\d,]+(?:\.\d+)?/.exec(text || '');
+  return m ? parseFloat(m[0].replace(/,/g, '')) : null;
+}
+function daysBetween(a, b) {
+  return Math.round((Date.UTC(a.getFullYear(), a.getMonth(), a.getDate()) - Date.UTC(b.getFullYear(), b.getMonth(), b.getDate())) / 86400000);
+}
+function money(n) { return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function computeFlags(fields, counts, today) {
+  var flags = [];
+  var deadline = parseDate(fields.appeal_deadline);
+  if (deadline) {
+    var left = daysBetween(deadline, today);
+    if (left < 0) flags.push(['high', 'Appeal deadline passed ' + Math.abs(left) + ' days ago']);
+    else if (left <= 14) flags.push(['high', 'Appeal deadline in ' + left + ' days']);
+    else flags.push(['info', 'Appeal deadline in ' + left + ' days']);
+  } else flags.push(['med', 'Appeal deadline not found. Check the letter.']);
+  var amount = parseAmount(fields.billed_amount);
+  if (amount !== null && amount >= HIGH_VALUE) flags.push(['med', 'High-value claim ($' + money(amount) + '). Senior review recommended.']);
+  if (carcNumber(fields.denial_code) === '29') flags.push(['med', 'Timely filing denials are often unrecoverable without proof of the original submission.']);
+  ['claim_number', 'denial_code', 'payer'].forEach(function (k) {
+    if (!fields[k]) flags.push(['med', 'Could not find: ' + k.replace(/_/g, ' ')]);
+  });
+  var total = Object.keys(counts).reduce(function (a, k) { return a + counts[k]; }, 0);
+  if (total) flags.push(['info', total + ' patient identifier(s) removed before AI processing']);
+  if (!('PATIENT_NAME' in counts)) flags.push(['high', 'No labelled patient name found. Names written inside sentences are not removed automatically.']);
+  return flags.map(function (f) { return { level: f[0], text: f[1] }; });
+}
+
+/* ---------- analysis ---------- */
+function analyzeLetter(letter, today) {
+  var d = deidentify(letter), counts = {};
+  Object.keys(d.mapping).forEach(function (token) {
+    var tag = token.slice(1, -1).replace(/_\d+$/, '');
+    counts[tag] = (counts[tag] || 0) + 1;
+  });
+  var fields = extractOffline(letter), pb = playbookFor(fields.denial_code);
+  return {
+    fields: fields,
+    category: pb.category,
+    strategy: pb.strategy,
+    missing_documents: pb.docs.slice(),
+    flags: computeFlags(fields, counts, today),
+    draft_letter: reidentify(buildOfflineLetter(fields, pb, today), d.mapping),
+    identifiers_removed: counts,
+    letter_sha256: sha256(letter)
+  };
+}
+
+function renderSample(text, today) {
+  return text.replace(/\{\{([+-]\d+)\}\}/g, function (m, n) {
+    var d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + parseInt(n, 10));
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  });
+}
+
+var api = { sha256: sha256, createAuditLog: createAuditLog, analyzeLetter: analyzeLetter, renderSample: renderSample, canon: canon, deidentify: deidentify };
+if (typeof module !== 'undefined' && module.exports) module.exports = api;
+else root.AppealCore = api;
+})(typeof window !== 'undefined' ? window : this);
+
+</script>
+<script>
+(function () {
+var SAMPLES = [{"name": "medical_necessity_mri", "title": "Medical necessity denial (MRI)", "text": "*** SYNTHETIC SAMPLE - FICTIONAL DATA, NOT A REAL PATIENT ***\n\nNORTHWIND HEALTH PLAN\nClaims Determination Notice\n\nDate of Notice: {{-5}}\nPayer: Northwind Health Plan\nClaim Number: NW-2026-0048817\nPatient Name: Jordan Avery Test\nMember ID: NWH-770412-09\nDate of Birth: 1974-03-19\nProvider: Lakeside Orthopaedic Group\nProcedure: CPT 72148 - MRI lumbar spine without contrast\nDate of Service: {{-40}}\nBilled Amount: $1,840.00\nDenial Code: CO-50\nDenial Reason: Service not deemed medically necessary based on submitted documentation.\nAppeal Deadline: {{+16}}\n\nYour claim was reviewed against Northwind clinical policy MRI-204 (Lumbar Spine Imaging).\nThe submitted documentation did not show at least six weeks of conservative therapy prior\nto imaging, and no neurological deficit was documented.\n\nYou may appeal this decision in writing before the deadline above. Include clinical notes\nand any supporting records. Questions: call (555) 010-4477 or email appeals@northwind.example\n"}, {"name": "missing_information", "title": "Missing information (corrected claim)", "text": "*** SYNTHETIC SAMPLE - FICTIONAL DATA, NOT A REAL PATIENT ***\n\nCEDAR VALLEY MUTUAL\nExplanation of Claim Denial\n\nDate of Notice: {{-3}}\nPayer: Cedar Valley Mutual\nClaim Number: CVM-88-2210953\nPatient Name: Riley Morgan Sample\nMember ID: CVM4491027\nDate of Birth: 1988-11-02\nProvider: Riverside Family Clinic\nProcedure: CPT 99214 - Office visit, established patient\nDate of Service: {{-28}}\nBilled Amount: $612.50\nDenial Code: CO-16\nDenial Reason: Claim lacks information needed for adjudication. Referring provider NPI missing.\nAppeal Deadline: {{+11}}\n\nWe could not process this claim because required information was missing. Please review the\nclaim, add the missing information and resubmit. Patient phone on file: 555-014-2288.\n"}, {"name": "timely_filing_high_value", "title": "Timely filing, high value", "text": "*** SYNTHETIC SAMPLE - FICTIONAL DATA, NOT A REAL PATIENT ***\n\nHARBORLIGHT INSURANCE COMPANY\nRemittance Advice - Denied Claim\n\nDate of Notice: {{-12}}\nPayer: Harborlight Insurance Company\nClaim Number: HL-2026-7731900\nPatient Name: Casey Lee Demo\nMember ID: HLI-3320-5567\nDate of Birth: 1961-07-30\nProvider: Eastgate Surgical Center\nProcedure: CPT 29881 - Knee arthroscopy with meniscectomy\nDate of Service: {{-210}}\nBilled Amount: $7,250.00\nDenial Code: CO-29\nDenial Reason: The time limit for filing has expired.\nAppeal Deadline: {{+9}}\n\nOur records show this claim was received after the 180-day filing limit in your provider\nagreement. To dispute, submit proof of timely filing. Contact appeals@harborlight.example.\n"}, {"name": "bundled_service_co97", "title": "Bundled service", "text": "*** SYNTHETIC SAMPLE - FICTIONAL DATA, NOT A REAL PATIENT ***\n\nLAKEVIEW HEALTH ALLIANCE\nClaim Adjustment Notice\n\nDate of Notice: {{-7}}\nPayer: Lakeview Health Alliance\nClaim Number: LHA-2026-5520146\nPatient Name: Morgan Taylor Placeholder\nMember ID: LHA-9901-3345\nDate of Birth: 1992-05-14\nProvider: Summit Pain Management\nProcedure: CPT 64483 - Transforaminal epidural injection, lumbar\nDate of Service: {{-35}}\nBilled Amount: $2,310.00\nDenial Code: CO-97\nDenial Reason: Benefit for this service is included in the payment for another service already adjudicated.\nAppeal Deadline: {{+23}}\n\nThe billed service was bundled with CPT 64484 performed on the same date. No modifier\nindicating a distinct procedural service was present on the claim.\nQuestions: 555-017-6634.\n"}, {"name": "different_labels_co50", "title": "Different label wording", "text": "*** SYNTHETIC SAMPLE - FICTIONAL DATA, NOT A REAL PATIENT ***\n\nSummit Ridge Insurance Company\nDETERMINATION LETTER\n\nHealth Plan: Summit Ridge Insurance Company\nClaim #: SRI-77-405512\nPatient: Taylor Quinn Fictional\nSubscriber ID: SRI0043319\nDOB: 06/22/1968\nFacility: Highland Imaging Associates\nService: CPT 70553 - MRI brain with and without contrast\nDOS: {{-25}}\nAmount Billed: $2,975.00\nReason Code: CO-50\nReason: Medical necessity criteria not met.\nDeadline to Appeal: {{+40}}\n\nPrior authorization was not on file and the clinical information submitted did not\nsupport the requested imaging. Appeals may be sent to appeals@summitridge.example.\n"}, {"name": "duplicate_deadline_passed_co18", "title": "Duplicate claim, deadline passed", "text": "*** SYNTHETIC SAMPLE - FICTIONAL DATA, NOT A REAL PATIENT ***\n\nBLUE HARBOR HEALTH\nDenial Notice\n\nDate of Notice: {{-30}}\nPayer: Blue Harbor Health\nClaim Number: BHH-2026-3308821\nPatient Name: Alex Rivera Example\nMember ID: BHH882145\nDate of Birth: 1979-12-01\nProvider: Northside Internal Medicine\nProcedure: CPT 99213 - Office visit, established patient\nDate of Service: {{-65}}\nBilled Amount: $148.00\nDenial Code: CO-18\nDenial Reason: Exact duplicate claim/service.\nAppeal Deadline: {{-6}}\n\nOur records show an identical claim was already processed and paid. No further payment is due.\n"}, {"name": "hard_narrative_no_labels", "title": "Hard case: no labels (shows the limits)", "text": "*** SYNTHETIC SAMPLE - FICTIONAL DATA, NOT A REAL PATIENT ***\n*** DELIBERATELY HARD: no labelled fields, name written inside sentences ***\n\nDear Provider,\n\nRe: Ms. Priya Nair Demo (member number PNX-4471-22, born March 8, 1985)\n\nWe have reviewed the claim numbered PX-90031-77 that Greenfield Cardiology submitted for a\nstress echocardiogram performed for Ms. Nair on {{-30}}. The amount billed, $3,150.00, has\nbeen denied under reason code CO-50 because the plan could not confirm that the test was\nmedically necessary. If you disagree, you have until {{+20}} to file a written appeal with\nPinecrest Health Partners. For questions call 555-013-8899.\n\nSincerely,\nPinecrest Health Partners Claims Department\n"}];
+window.__contact = { name: '', email: 'zeeshanqadir568@gmail.com', phone: '', days: '14' };
+if (/[?&]record=1/.test(location.search)) document.documentElement.classList.add('rec');
+var core = window.AppealCore;
+var $ = function (id) { return document.getElementById(id); };
+var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var fine = !reduced && window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+var today = new Date();
+var audit, cases, current, tampered, seen, busy = false, tourOn = false;
+
+/* ---------- icons ---------- */
+var ICONS = {
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  shield: '<path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
+  coin: '<circle cx="12" cy="12" r="9"/><path d="M12 6.5v11M9.3 9.6c0-1.2 1.2-1.8 2.7-1.8s2.7.6 2.7 1.8-1.2 1.6-2.7 2-2.7.8-2.7 2 1.2 1.9 2.7 1.9 2.7-.7 2.7-1.9"/>',
+  alert: '<path d="M12 3.5l9.5 16.5h-19z"/><path d="M12 10v4.5M12 17.4v.2"/>',
+  eyeoff: '<path d="M3 3l18 18"/><path d="M10.6 6.1A9.5 9.5 0 0121 12a14 14 0 01-3 3.9M6.4 7.4A14 14 0 003 12s3.5 6 9 6a9.4 9.4 0 003.3-.6"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>',
+  doc: '<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4.5 20c.8-4 3.7-6 7.5-6s6.7 2 7.5 6"/>',
+  spark: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/>',
+  hourglass: '<path d="M7 3h10M7 21h10M8 3c0 5 4 5.5 4 9s-4 4-4 9M16 3c0 5-4 5.5-4 9s4 4 4 9"/>',
+  file: '<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/>',
+  play: '<path d="M8 5l11 7-11 7z"/>',
+  flag: '<path d="M6 21V4M6 5h11l-2 4 2 4H6"/>'
+};
+function ico(name) { return '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[name] || '') + '</svg>'; }
+Array.prototype.forEach.call(document.querySelectorAll('[data-ico]'), function (el) { el.innerHTML = ico(el.getAttribute('data-ico')); el.style.display = 'inline-flex'; });
+
+/* ---------- effects: particles (cursor trail, sparkle burst) ---------- */
+var FX = (function () {
+  var cv = $('fxCanvas'), cx = cv.getContext('2d'), P = [], W = 0, H = 0, raf = 0;
+  var COLORS = ['#17A2B8', '#F2A413', '#22A06B', '#6D5BD0', '#E24B4B', '#2F6FDE'];
+  function fit() { W = cv.width = window.innerWidth; H = cv.height = window.innerHeight; }
+  fit(); window.addEventListener('resize', fit);
+  function tick() {
+    cx.clearRect(0, 0, W, H);
+    for (var i = P.length - 1; i >= 0; i--) {
+      var p = P[i]; p.age++;
+      if (p.age > p.life) { P.splice(i, 1); continue; }
+      p.x += p.vx; p.y += p.vy; p.vy += p.g; p.rot += p.vr;
+      var a = 1 - p.age / p.life;
+      cx.globalAlpha = a; cx.fillStyle = p.c;
+      if (p.kind === 'rect') { cx.save(); cx.translate(p.x, p.y); cx.rotate(p.rot); cx.fillRect(-p.s, -p.s / 2, p.s * 2, p.s); cx.restore(); }
+      else { cx.beginPath(); cx.arc(p.x, p.y, p.s * a + .6, 0, 6.283); cx.fill(); }
+    }
+    cx.globalAlpha = 1;
+    if (P.length) raf = requestAnimationFrame(tick); else { raf = 0; cx.clearRect(0, 0, W, H); }
+  }
+  function push(p) { P.push(p); if (!raf) raf = requestAnimationFrame(tick); }
+  return {
+    trail: function (x, y) { if (reduced) return; push({ x: x, y: y, vx: (Math.random() - .5) * .7, vy: (Math.random() - .5) * .7, g: 0, rot: 0, vr: 0, life: 28, age: 0, s: 3 + Math.random() * 2.6, c: Math.random() < .55 ? '#17A2B8' : '#F2A413', kind: 'dot' }); },
+    burst: function (x, y, n, kind) {
+      if (reduced) return;
+      for (var i = 0; i < n; i++) { var ang = Math.random() * 6.283, sp = 3 + Math.random() * 7;
+        push({ x: x, y: y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 3, g: .2, rot: Math.random() * 6, vr: (Math.random() - .5) * .4, life: 55 + Math.random() * 40, age: 0, s: 4 + Math.random() * 4, c: COLORS[(Math.random() * COLORS.length) | 0], kind: kind || 'rect' }); }
+    }
+  };
+})();
+
+/* ---------- effects: pointer glow, tilt, parallax, ring ---------- */
+var ring = $('cring'), ptr = { x: -100, y: -100, rx: -100, ry: -100 }, ringRaf = 0, lastTile = null, lastTrail = 0;
+function pointer(x, y, target) {
+  ptr.x = x; ptr.y = y;
+  var t = target || document.elementFromPoint(x, y);
+  var host = t && t.closest ? t.closest('.card,.coach') : null;
+  if (host) { var r = host.getBoundingClientRect(); host.style.setProperty('--mx', (x - r.left) + 'px'); host.style.setProperty('--my', (y - r.top) + 'px'); }
+  var tile = t && t.closest ? t.closest('.tile') : null;
+  if (tile !== lastTile) { if (lastTile) { lastTile.style.setProperty('--rx', '0deg'); lastTile.style.setProperty('--ry', '0deg'); lastTile.classList.remove('lift'); } lastTile = tile; }
+  if (tile) {
+    var q = tile.getBoundingClientRect(), dx = (x - q.left) / q.width - .5, dy = (y - q.top) / q.height - .5;
+    tile.style.setProperty('--ry', (dx * 12).toFixed(1) + 'deg'); tile.style.setProperty('--rx', (-dy * 12).toFixed(1) + 'deg'); tile.classList.add('lift');
+    tile.style.setProperty('--mx', (x - q.left) + 'px'); tile.style.setProperty('--my', (y - q.top) + 'px');
+  }
+  var de = document.documentElement.style;
+  de.setProperty('--px', ((x / window.innerWidth) - .5).toFixed(3)); de.setProperty('--py', ((y / window.innerHeight) - .5).toFixed(3));
+  var now = performance.now();
+  if (now - lastTrail > 30) { FX.trail(x, y); lastTrail = now; }
+  if (!tourOn && ring) ring.classList.toggle('big', !!(t && t.closest && t.closest('button,a,select,input,textarea,label,[role=tab]')));
+}
+function ringFollow() {
+  if (ringRaf) return;
+  (function step() {
+    ptr.rx += (ptr.x - ptr.rx) * .2; ptr.ry += (ptr.y - ptr.ry) * .2;
+    ring.style.transform = 'translate(' + ptr.rx.toFixed(1) + 'px,' + ptr.ry.toFixed(1) + 'px)';
+    ringRaf = (Math.abs(ptr.x - ptr.rx) + Math.abs(ptr.y - ptr.ry) > .6 && !tourOn) ? requestAnimationFrame(step) : 0;
+  })();
+}
+if (fine) {
+  document.addEventListener('mousemove', function (e) { if (tourOn) return; ring.classList.add('on'); pointer(e.clientX, e.clientY, e.target); ringFollow(); }, { passive: true });
+  document.documentElement.addEventListener('mouseleave', function () { ring.classList.remove('on'); });
+  document.addEventListener('mousedown', function (e) { if (!tourOn) FX.burst(e.clientX, e.clientY, 9, 'dot'); });
+}
+document.addEventListener('click', function (e) {
+  var b = e.target.closest ? e.target.closest('button') : null;
+  if (!b || b.disabled || reduced) return;
+  var r = b.getBoundingClientRect(), x, y, tc = window.__tourClick;
+  if (e.detail === 0 && tc && performance.now() - tc.t < 500) { x = tc.x - r.left; y = tc.y - r.top; }
+  else if (e.detail === 0) { x = r.width / 2; y = r.height / 2; }
+  else { x = e.clientX - r.left; y = e.clientY - r.top; }
+  var d = Math.max(r.width, r.height) * 2.2, s = document.createElement('span');
+  s.className = 'rip'; s.style.cssText = 'width:' + d + 'px;height:' + d + 'px;left:' + (x - d / 2) + 'px;top:' + (y - d / 2) + 'px';
+  b.appendChild(s); setTimeout(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 700);
+});
+window.__fx = { pointer: pointer, burst: FX.burst, trail: FX.trail, setTour: function (v) { tourOn = v; if (v) ring.classList.remove('on'); } };
+
+/* ---------- effects: count-up, hash scramble, flash ---------- */
+function countUp(root) {
+  Array.prototype.forEach.call(root.querySelectorAll('[data-count]'), function (el) {
+    var target = parseFloat(el.getAttribute('data-count')), fmt = el.getAttribute('data-fmt'), final = el.textContent;
+    if (reduced || isNaN(target)) return;
+    var t0 = performance.now(), dur = 750;
+    (function step(now) {
+      var k = Math.min(1, (now - t0) / dur), v = target * (1 - Math.pow(1 - k, 3));
+      el.textContent = fmt === 'money' ? '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : String(Math.round(v));
+      if (k < 1) requestAnimationFrame(step); else el.textContent = final;
+    })(t0);
+  });
+}
+function scramble(el, finalText, delay) {
+  if (reduced) return;
+  var chars = '0123456789abcdef', t0 = performance.now() + delay, dur = 560;
+  el.textContent = finalText.replace(/./g, function () { return chars[(Math.random() * 16) | 0]; });
+  (function step(now) {
+    if (now < t0) { requestAnimationFrame(step); return; }
+    var k = Math.min(1, (now - t0) / dur), fixed = Math.floor(k * finalText.length), s = '';
+    for (var i = 0; i < finalText.length; i++) s += i < fixed ? finalText.charAt(i) : chars[(Math.random() * 16) | 0];
+    el.textContent = s;
+    if (k < 1) requestAnimationFrame(step); else el.textContent = finalText;
+  })(performance.now());
+}
+function flash() { if (reduced) return; document.body.classList.add('flash-on'); setTimeout(function () { document.body.classList.remove('flash-on'); }, 650); }
+
+/* ---------- guide (stepper + tip + nudge) ---------- */
+function guide(active, text, kind, icon) {
+  Array.prototype.forEach.call($('stepper').children, function (li, i) {
+    li.className = (i + 1 < active) ? 'done' : (i + 1 === active ? 'active' : '');
+    li.querySelector('.dot').innerHTML = (i + 1 < active) ? ico('check') : String(i + 1);
+  });
+  $('tip').className = 'tip' + (kind ? ' ' + kind : '');
+  $('tipIc').innerHTML = ico(icon || 'spark');
+  $('tipText').textContent = text;
+  ['go', 'approve', 'tamper', 'undo'].forEach(function (id) { $(id).classList.remove('nudge'); });
+  var next = active === 1 ? 'go' : active === 3 ? 'approve' : active === 4 ? (kind === 'alert' ? 'undo' : 'tamper') : '';
+  if (next && !tourOn) $(next).classList.add('nudge');
+}
+var TIPS = {
+  start: 'Pick a sample letter, then press Analyze.',
+  review: 'Draft ready. Check the warnings, edit the letter if you like, then approve, escalate or discard it.',
+  decided: 'Decision recorded. Scroll down to the record and try to cheat it.',
+  caught: 'Caught! The chain shows exactly which entry was changed. Press Undo to restore it.',
+  finished: 'That is the whole loop: letter, draft, human decision, tamper-evident record. Want it on your own letters? Get in touch below.'
+};
+
+/* ---------- toast ---------- */
+var toastTimer;
+function toast(msg, icon) {
+  var t = $('toast'); t.innerHTML = ico(icon || 'check') + '<span>' + esc(msg) + '</span>'; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2600);
+}
+
+/* ---------- state ---------- */
+function resetState() { audit = core.createAuditLog(); cases = {}; current = null; tampered = null; seen = {}; }
+resetState();
+
+$('sample').innerHTML = '<option value="">Choose a sample...</option>' + SAMPLES.map(function (s, i) { return '<option value="' + i + '">' + esc(s.title) + '</option>'; }).join('');
+function loadSample(i) { $('sample').value = String(i); $('letter').value = core.renderSample(SAMPLES[i].text, today); renderRedaction(); }
+$('sample').addEventListener('change', function (e) { if (e.target.value !== '') loadSample(+e.target.value); });
+
+/* ---------- redaction view ---------- */
+function renderRedaction() {
+  var d = core.deidentify($('letter').value);
+  var n = Object.keys(d.mapping).length;
+  $('redacted').innerHTML = esc(d.clean).replace(/\[([A-Z_0-9]+)\]/g, '<mark class="tok">[$1]</mark>');
+  $('redNote').textContent = n
+    ? n + ' identifier' + (n === 1 ? '' : 's') + ' replaced by tokens. The originals stay on your computer. In an AI-assisted pilot, this is all the AI would receive.'
+    : 'No identifiers were recognised in this text. Names written inside sentences are not removed automatically.';
+}
+function showTab(which) {
+  var red = which === 'red';
+  $('paneOrig').hidden = red; $('paneRed').hidden = !red;
+  $('tabOrig').setAttribute('aria-selected', String(!red)); $('tabRed').setAttribute('aria-selected', String(red));
+  if (red) renderRedaction();
+}
+$('tabOrig').addEventListener('click', function () { showTab('orig'); });
+$('tabRed').addEventListener('click', function () { showTab('red'); });
+$('letter').addEventListener('input', renderRedaction);
+
+/* ---------- analyze ---------- */
+function newId() { var s = ''; for (var i = 0; i < 10; i++) s += '0123456789abcdef'[Math.floor(Math.random() * 16)]; return s; }
+
+$('go').addEventListener('click', function () {
+  if (busy) return;
+  $('err').textContent = '';
+  var letter = $('letter').value.trim(), actor = $('actor').value.trim();
+  if (actor.length < 2) { $('err').textContent = 'Enter your name first.'; return; }
+  if (letter.length < 40) { $('err').textContent = 'Paste the full denial letter.'; return; }
+  var r = core.analyzeLetter(letter, new Date()), id = newId();
+  audit.log(id, 'case_opened', actor, { letter_sha256: r.letter_sha256, identifiers_removed: r.identifiers_removed });
+  audit.log(id, 'ai_draft_created', 'offline-template', { draft_sha256: core.sha256(r.draft_letter), flags: r.flags.filter(function (f) { return f.level !== 'info'; }).map(function (f) { return f.text; }), note: '' });
+  r.case_id = id; r.status = 'awaiting_human_review'; r.final_letter = null;
+  cases[id] = r; current = r; tampered = null;
+  $('tamper').disabled = false; $('undo').disabled = true; $('tamperNote').textContent = '';
+  reveal();
+});
+
+function reveal() {
+  busy = true; $('go').disabled = true;
+  $('out').hidden = false; $('doneRing').innerHTML = ''; $('status').textContent = '';
+  var steps = ['Reading the letter', 'Replacing patient identifiers', 'Preparing the draft'];
+  if (reduced) { finishReveal(); return; }
+  $('busy').hidden = false; $('result').hidden = true; $('auditbox').hidden = true;
+  $('busyList').innerHTML = steps.map(function (s) { return '<li><span class="spin"></span>' + s + '</li>'; }).join('');
+  var items = $('busyList').children, i = 0;
+  (function next() {
+    if (i > 0) items[i - 1].className = 'ok';
+    if (i === items.length) { setTimeout(finishReveal, 200); return; }
+    i++; setTimeout(next, 330);
+  })();
+}
+function finishReveal() {
+  $('busy').hidden = true; $('result').hidden = false;
+  busy = false; $('go').disabled = false;
+  render(); guide(3, TIPS.review, '', 'flag');
+}
+
+/* ---------- render review ---------- */
+function flagIcon(f) {
+  var t = f.text.toLowerCase();
+  if (t.indexOf('deadline') > -1) return 'clock';
+  if (t.indexOf('identifier') > -1) return 'shield';
+  if (t.indexOf('high-value') > -1) return 'coin';
+  if (t.indexOf('timely filing') > -1) return 'hourglass';
+  if (t.indexOf('no labelled patient') > -1) return 'eyeoff';
+  return 'alert';
+}
+function daysLeft(c) {
+  for (var i = 0; i < c.flags.length; i++) {
+    var m = /Appeal deadline (?:in (\d+) days|passed (\d+) days ago)/.exec(c.flags[i].text);
+    if (m) return m[1] !== undefined ? +m[1] : -m[2];
+  }
+  return null;
+}
+function tiles(c) {
+  var d = daysLeft(c), R = 28, C = 2 * Math.PI * R;
+  var frac = d === null ? 0 : Math.max(0, Math.min(d, 30)) / 30;
+  var col = d === null ? 'var(--muted)' : d < 0 ? 'var(--coral)' : d <= 14 ? 'var(--amber)' : 'var(--green)';
+  var word = d === null ? 'not found' : d < 0 ? 'days overdue' : 'days left';
+  var num = d === null ? '?' : Math.abs(d);
+  var code = c.fields.denial_code || 'n/a', n = (/(\d{1,3})/.exec(code) || [0, ''])[1];
+  var cls = ({ '50': 'c50', '16': 'c16', '29': 'c29', '97': 'c97' })[n] || 'cx';
+  var amt = c.fields.billed_amount || 'n/a', amtNum = parseFloat((amt.match(/[\d,]+(?:\.\d+)?/) || [''])[0].replace(/,/g, ''));
+  return '<div class="tile"><div class="ring"><svg width="64" height="64" viewBox="0 0 64 64"><circle class="bg" cx="32" cy="32" r="' + R + '"/><circle class="fg" cx="32" cy="32" r="' + R + '" stroke="' + col + '" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + (C * (1 - frac)).toFixed(1) + '" style="--full:' + C.toFixed(1) + '"/></svg><div class="num" style="color:' + col + '"' + (d === null ? '' : ' data-count="' + Math.abs(d) + '"') + '>' + num + '</div></div><div><small>Appeal deadline</small><b>' + word + '</b></div></div>' +
+    '<div class="tile"><div class="tile-ic money">' + ico('coin') + '</div><div><small>Billed</small><b' + (isNaN(amtNum) ? '' : ' data-count="' + amtNum + '" data-fmt="money"') + '>' + esc(amt) + '</b></div></div>' +
+    '<div class="tile"><div class="tile-ic ' + cls + '">' + ico('file') + '</div><div><small>Denial ' + esc(code) + '</small><b>' + esc(c.category) + '</b></div></div>';
+}
+function render() {
+  var c = current;
+  $('out').hidden = false;
+  $('status').textContent = c.status.replace(/_/g, ' '); $('status').className = 'badge ' + c.status;
+  $('tiles').innerHTML = tiles(c); countUp($('tiles'));
+  $('flags').innerHTML = c.flags.map(function (f, i) { return '<li class="flag ' + f.level + '" style="animation-delay:' + (i * 70) + 'ms">' + ico(flagIcon(f)) + '<span>' + esc(f.text) + '</span></li>'; }).join('');
+  var skip = { billed_amount: 1, denial_code: 1 };
+  $('fields').innerHTML = Object.keys(c.fields).filter(function (k) { return c.fields[k] && !skip[k]; }).map(function (k) { return '<dt>' + esc(k.replace(/_/g, ' ')) + '</dt><dd>' + esc(c.fields[k]) + '</dd>'; }).join('');
+  $('strategy').innerHTML = '<strong>' + esc(c.category) + '.</strong> ' + esc(c.strategy);
+  $('docs').innerHTML = c.missing_documents.map(function (d, i) { return '<label class="chk" id="chk' + i + '"><input type="checkbox" data-i="' + i + '"><span>' + esc(d) + '</span></label>'; }).join('');
+  docSummary();
+  $('draft').value = c.final_letter || c.draft_letter;
+  var done = c.status !== 'awaiting_human_review';
+  ['approve', 'escalate', 'discard'].forEach(function (id) { $(id).disabled = done; });
+  $('draft').readOnly = done;
+  $('auditbox').hidden = false;
+  renderChain();
+}
+function docSummary() {
+  var boxes = $('docs').querySelectorAll('input'), n = 0;
+  Array.prototype.forEach.call(boxes, function (b) { b.parentNode.classList.toggle('on', b.checked); if (b.checked) n++; });
+  $('docsum').textContent = n + ' of ' + boxes.length + ' documents ready (demo checklist, not saved)';
+}
+$('docs').addEventListener('change', docSummary);
+
+/* ---------- audit chain ---------- */
+function renderChain() {
+  var ch = audit.verify();
+  var evs = audit.events.filter(function (e) { return current && e.case_id === current.case_id; });
+  var names = { case_opened: 'Letter received', ai_draft_created: 'Draft created', human_decision: 'Human decision' };
+  var html = '', fresh = [];
+  evs.forEach(function (e, i) {
+    var label = names[e.type] || e.type, isNew = !seen[e.hash];
+    if (e.type === 'human_decision') label += ': ' + e.data.action + (e.data.edited_from_ai_draft ? ' (edited)' : '');
+    var bad = !ch.ok && e.seq === ch.broken_at, afterBad = !ch.ok && e.seq > ch.broken_at;
+    if (i > 0) html += '<div class="link' + ((bad || afterBad) ? ' bad' : '') + '"></div>';
+    html += '<div class="block' + (bad ? ' bad' : '') + (isNew ? ' new' : '') + '" data-seq="' + e.seq + '" style="animation-delay:' + (i * 110) + 'ms"><div class="top"><span class="no">#' + e.seq + '</span><span class="ev-name">' + esc(label) + '</span></div>' +
+      '<div class="who">by ' + esc(e.actor) + ' &middot; ' + esc(e.ts.slice(11, 19)) + ' UTC</div>' +
+      '<div class="h">prev <b class="pv">' + e.prev_hash.slice(0, 8) + '</b><br>hash <b class="hs">' + e.hash.slice(0, 8) + '</b></div></div>';
+    if (isNew) fresh.push(e);
+    seen[e.hash] = 1;
+  });
+  $('chain').innerHTML = html;
+  fresh.forEach(function (e, k) { var b = $('chain').querySelector('.block[data-seq="' + e.seq + '"] .hs'); if (b) scramble(b, e.hash.slice(0, 8), 250 + k * 140); });
+  showChain(ch);
+}
+function showChain(ch) {
+  var b = $('banner');
+  b.className = 'banner ' + (ch.ok ? 'ok' : 'bad');
+  b.innerHTML = ch.ok ? ico('shield') + '<span>Record intact. ' + ch.events + ' events, every link matches.</span>'
+                      : ico('alert') + '<span>TAMPERING DETECTED at event #' + ch.broken_at + '. The links after it no longer match.</span>';
+}
+
+/* ---------- decisions ---------- */
+function decide(action) {
+  if (!current) return;
+  $('err').textContent = '';
+  var actor = $('actor').value.trim(), text = $('draft').value;
+  if (actor.length < 2) { $('err').textContent = 'A named human reviewer is required.'; return; }
+  if (action === 'approve' && !text.trim()) { $('err').textContent = 'Cannot approve an empty letter.'; return; }
+  var edited = core.sha256(text) !== core.sha256(current.draft_letter);
+  var ev = audit.log(current.case_id, 'human_decision', actor, { action: action, edited_from_ai_draft: edited, final_sha256: action === 'approve' ? core.sha256(text) : null, note: $('note').value.trim() });
+  current.status = { approve: 'approved', escalate: 'escalated', discard: 'discarded' }[action];
+  if (action === 'approve') current.final_letter = text;
+  var br = $(action).getBoundingClientRect();
+  render();
+  $('status').classList.add('pop');
+  if (action === 'approve') { $('doneRing').innerHTML = '<svg class="done-ring" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15.5" pathLength="100"/><path d="M11 18.5l5 5 9-10" pathLength="30"/></svg>'; FX.burst(br.left + br.width / 2, br.top + br.height / 2, 54, 'rect'); }
+  toast({ approve: 'Approved. Recorded as event #' + ev.seq + '.', escalate: 'Escalated to a senior reviewer. Recorded as event #' + ev.seq + '.', discard: 'Draft discarded. Recorded as event #' + ev.seq + '.' }[action], action === 'approve' ? 'check' : 'flag');
+  guide(4, TIPS.decided, 'win', 'shield');
+}
+['approve', 'escalate', 'discard'].forEach(function (a) { $(a).addEventListener('click', function () { decide(a); }); });
+$('verify').addEventListener('click', function () {
+  var ch = audit.verify(); renderChain();
+  toast(ch.ok ? 'Record verified. Nothing has changed.' : 'Verification failed at event #' + ch.broken_at + '.', ch.ok ? 'shield' : 'alert');
+});
+
+$('tamper').addEventListener('click', function () {
+  if (!current || tampered) return;
+  var mine = audit.events.filter(function (e) { return e.case_id === current.case_id; }), target = mine[mine.length - 1];
+  tampered = { ev: target, actor: target.actor };
+  target.actor = 'Unknown person';
+  $('undo').disabled = false; $('tamper').disabled = true;
+  $('tamperNote').textContent = 'We changed the name on event #' + target.seq + ' to "Unknown person" without redoing its fingerprint.';
+  renderChain(); flash(); toast('Entry edited behind the scenes.', 'alert');
+  guide(4, TIPS.caught, 'alert', 'alert');
+});
+$('undo').addEventListener('click', function () {
+  if (!tampered) return;
+  tampered.ev.actor = tampered.actor; tampered = null;
+  $('undo').disabled = true; $('tamper').disabled = false;
+  $('tamperNote').textContent = 'Restored. The record verifies again.';
+  renderChain(); toast('Restored. The record is intact again.', 'shield');
+  guide(5, TIPS.finished, 'win', 'check');
+});
+
+/* ---------- report ---------- */
+$('viewreport').addEventListener('click', function () {
+  if (!current) return;
+  var c = current, evs = audit.events.filter(function (e) { return e.case_id === c.case_id; }), ch = audit.verify();
+  var rows = Object.keys(c.fields).filter(function (k) { return c.fields[k]; }).map(function (k) { return '<tr><th>' + esc(k.replace(/_/g, ' ')) + '</th><td>' + esc(c.fields[k]) + '</td></tr>'; }).join('');
+  var ev = evs.map(function (e) { return '<tr><td>' + e.seq + '</td><td>' + esc(e.ts) + '</td><td>' + esc(e.type) + '</td><td>' + esc(e.actor) + '</td><td>' + esc(JSON.stringify(e.data)) + '</td><td class="h">' + e.hash.slice(0, 16) + '</td></tr>'; }).join('');
+  $('report').innerHTML = '<div class="noprint acts" style="margin:0 0 14px"><button class="btn-go" id="print">Print or save as PDF</button><button class="btn-ghost" id="closereport">Close report</button></div>' +
+    '<h2>Appeal audit report (demo, synthetic data)</h2><p>Case ' + c.case_id + ' &middot; status: <b>' + esc(c.status.replace(/_/g, ' ')) + '</b> &middot; <b style="color:' + (ch.ok ? 'var(--green-ink)' : 'var(--coral-ink)') + '">' + (ch.ok ? 'Record intact' : 'TAMPERING DETECTED at event #' + ch.broken_at) + '</b></p>' +
+    '<h3>Claim details</h3><table>' + rows + '</table>' +
+    '<h3>' + (c.final_letter ? 'Approved letter' : 'Draft (not approved)') + '</h3><pre>' + esc(c.final_letter || c.draft_letter) + '</pre>' +
+    '<h3>Audit trail</h3><table class="a"><tr><th style="width:2rem">#</th><th>Time (UTC)</th><th>Event</th><th>Actor</th><th>Data</th><th>Hash</th></tr>' + ev + '</table>';
+  $('report').hidden = false; document.body.classList.add('report-open');
+  $('print').addEventListener('click', function () { window.print(); });
+  $('closereport').addEventListener('click', function () { $('report').hidden = true; document.body.classList.remove('report-open'); });
+  if (!tourOn) $('report').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+});
+
+/* ---------- reset + start ---------- */
+$('reset').addEventListener('click', function () {
+  resetState(); busy = false; $('go').disabled = false;
+  ['out', 'auditbox', 'report'].forEach(function (id) { $(id).hidden = true; });
+  document.body.classList.remove('report-open');
+  $('err').textContent = ''; $('doneRing').innerHTML = ''; showTab('orig'); loadSample(0);
+  guide(1, TIPS.start, '', 'spark');
+});
+$('tourBtn').addEventListener('click', function () { if (window.__startTour) window.__startTour(); });
+
+loadSample(0);
+guide(1, TIPS.start, '', 'spark');
+$('go').click();
+})();
+</script>
+<script>
+/* Guided tour for the Appeal Desk demo: a scripted cursor, spotlight and captions that drive the real page.
+   Used two ways: the "Watch the guided tour" button, and (with ?record=1) the video recorder. */
+(function () {
+'use strict';
+var $ = function (id) { return document.getElementById(id); };
+var q = function (sel) { return document.querySelector(sel); };
+var qa = function (sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); };
+var REC = /[?&]record=1/.test(location.search);
+var sm = /[?&]speed=([\d.]+)/.exec(location.search), SPEED = sm ? Math.max(1, parseFloat(sm[1])) : 1;
+var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var fx = window.__fx || { pointer: function () {}, burst: function () {}, setTour: function () {} };
+var ABORT = { abort: true };
+var root, spot, cur, capBox, capScene, capText, prog, card, pauseBtn;
+var running = false, paused = false, aborted = false, pos = { x: 960, y: 140 };
+window.__caps = []; window.__tourDone = false; window.__tourError = null;
+
+/* ---------- scaffold ---------- */
+function build() {
+  if (root) return;
+  root = document.createElement('div'); root.id = 'tour'; root.hidden = true;
+  root.innerHTML =
+    '<div class="t-progress"><i><\/i><\/div><div class="t-spot"><\/div>' +
+    '<div class="t-cursor"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 3v21l5.6-5 3.8 8.4 3.6-1.6-3.8-8.3L22 13z" fill="#fff" stroke="#0F2230" stroke-width="1.7" stroke-linejoin="round"/><\/svg><\/div>' +
+    '<div class="t-caption"><span class="t-scene"><\/span><p><\/p><\/div><div class="t-card"><\/div>' +
+    '<div class="t-controls"><button type="button" data-a="pause">Pause<\/button><button type="button" data-a="restart">Restart<\/button><button type="button" data-a="close">Close tour<\/button><\/div>';
+  document.body.appendChild(root);
+  spot = root.querySelector('.t-spot'); cur = root.querySelector('.t-cursor'); capBox = root.querySelector('.t-caption');
+  capScene = root.querySelector('.t-scene'); capText = capBox.querySelector('p'); prog = root.querySelector('.t-progress'); card = root.querySelector('.t-card');
+  pauseBtn = root.querySelector('[data-a="pause"]');
+  root.querySelector('.t-controls').addEventListener('click', function (e) {
+    var a = e.target.getAttribute && e.target.getAttribute('data-a');
+    if (a === 'pause') { paused = !paused; pauseBtn.textContent = paused ? 'Resume' : 'Pause'; }
+    else if (a === 'close') stop();
+    else if (a === 'restart') { stop(); setTimeout(start, 300); }
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && running) stop(); });
+}
+
+/* ---------- timing helpers (pause and abort aware) ---------- */
+/* next animation frame, with a timer as a backup so the tour never stalls if frames stop */
+function nextTick(cb) {
+  var fired = false;
+  function run() { if (fired) return; fired = true; cb(performance.now()); }
+  requestAnimationFrame(run); setTimeout(run, 45);
+}
+function tween(dur, fn) {
+  return new Promise(function (res, rej) {
+    var acc = 0, last = performance.now(), d = Math.max(0, dur / SPEED);
+    (function step(now) {
+      if (aborted) return rej(ABORT);
+      if (!paused) acc += now - last; last = now;
+      var k = d <= 0 ? 1 : Math.min(1, acc / d);
+      try { fn(k); } catch (e) { return rej(e); }
+      if (k < 1) nextTick(step); else res();
+    })(last);
+  });
+}
+function sleep(ms) { return tween(ms, function () {}); }
+function until(test, timeout) {
+  return new Promise(function (res, rej) {
+    var t0 = performance.now();
+    (function step() {
+      if (aborted) return rej(ABORT);
+      if (test() || performance.now() - t0 > (timeout || 8000)) return res();
+      nextTick(step);
+    })();
+  });
+}
+function ease(k) { return k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; }
+
+/* ---------- cursor, scroll, spotlight ---------- */
+function place(x, y) { pos.x = x; pos.y = y; cur.style.transform = 'translate(' + (x - 5) + 'px,' + (y - 3) + 'px)'; fx.pointer(x, y); }
+function moveTo(x, y, dur) {
+  var x0 = pos.x, y0 = pos.y, dx = x - x0, dy = y - y0, dist = Math.sqrt(dx * dx + dy * dy) || 1;
+  dur = dur || Math.max(550, Math.min(1400, dist * 1.7));
+  var bend = Math.min(70, dist * .14) * (dx >= 0 ? 1 : -1), cx = (x0 + x) / 2 + (-dy / dist) * bend, cy = (y0 + y) / 2 + (dx / dist) * bend;
+  return tween(reduced ? 0 : dur, function (k) { var e = ease(k), u = 1 - e; place(u * u * x0 + 2 * u * e * cx + e * e * x, u * u * y0 + 2 * u * e * cy + e * e * y); });
+}
+function scrollTo(y, dur) {
+  var y0 = window.pageYOffset, max = document.documentElement.scrollHeight - window.innerHeight;
+  y = Math.max(0, Math.min(max, y));
+  if (Math.abs(y - y0) < 4) return Promise.resolve();
+  return tween(reduced ? 0 : (dur || Math.min(1500, 550 + Math.abs(y - y0) * .55)), function (k) { window.scrollTo(0, y0 + (y - y0) * ease(k)); fx.pointer(pos.x, pos.y); });
+}
+function focusEl(el, frac) {
+  var r = el.getBoundingClientRect(), vh = window.innerHeight - 130, y;
+  if (r.height > vh * .85) y = window.pageYOffset + r.top - 62;
+  else y = window.pageYOffset + r.top + r.height / 2 - (frac == null ? .4 : frac) * window.innerHeight;
+  return scrollTo(y);
+}
+function ensureVisible(el) { var r = el.getBoundingClientRect(); return (r.top < 90 || r.bottom > window.innerHeight - 140) ? focusEl(el) : Promise.resolve(); }
+function moveToEl(el, o) {
+  o = o || {};
+  return ensureVisible(el).then(function () {
+    var r = el.getBoundingClientRect();
+    return moveTo(r.left + r.width * (o.fx == null ? .5 : o.fx), r.top + r.height * (o.fy == null ? .5 : o.fy));
+  });
+}
+function spotOn(target, pad) {
+  var els = Array.isArray(target) ? target : [target], l = 1e9, t = 1e9, r = -1e9, b = -1e9;
+  els.forEach(function (e) { var k = e.getBoundingClientRect(); l = Math.min(l, k.left); t = Math.min(t, k.top); r = Math.max(r, k.right); b = Math.max(b, k.bottom); });
+  pad = pad == null ? 8 : pad;
+  spot.style.left = (l - pad) + 'px'; spot.style.top = (t - pad) + 'px'; spot.style.width = (r - l + pad * 2) + 'px'; spot.style.height = (b - t + pad * 2) + 'px';
+  spot.classList.add('on');
+}
+function spotOff() { spot.classList.remove('on'); }
+
+/* ---------- actions ---------- */
+function ripple() {
+  var r = document.createElement('div'); r.className = 't-ring'; r.style.left = pos.x + 'px'; r.style.top = pos.y + 'px';
+  root.appendChild(r); setTimeout(function () { if (r.parentNode) r.parentNode.removeChild(r); }, 850);
+}
+async function clickEl(el, o) {
+  await moveToEl(el, o);
+  el.classList.add('fake-hover'); await sleep(220);
+  cur.classList.add('press'); ripple(); window.__tourClick = { x: pos.x, y: pos.y, t: performance.now() };
+  await sleep(110); el.click(); cur.classList.remove('press');
+  await sleep(220); el.classList.remove('fake-hover');
+}
+async function pickSample(i) {
+  var s = $('sample'); await moveToEl(s, { fx: .6 }); s.classList.add('fake-hover'); await sleep(200);
+  cur.classList.add('press'); ripple(); await sleep(120); cur.classList.remove('press');
+  s.value = String(i); s.dispatchEvent(new Event('change', { bubbles: true })); await sleep(500);
+}
+async function typeText(el, text, cps, from, to) {
+  el.focus();
+  if (from != null) el.setSelectionRange(from, to);
+  for (var i = 0; i < text.length; i++) {
+    if (aborted) throw ABORT;
+    var s = (i === 0 && from != null) ? from : el.selectionEnd, e = (i === 0 && from != null) ? to : el.selectionEnd;
+    el.setRangeText(text.charAt(i), s, e, 'end');
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    await sleep(1000 / (cps || 28));
+  }
+}
+function taScroll(el, to, dur) {
+  var y0 = el.scrollTop; to = Math.max(0, to);
+  return tween(reduced ? 0 : dur, function (k) { el.scrollTop = y0 + (to - y0) * ease(k); });
+}
+function visualTop(el, index) {
+  var cs = getComputedStyle(el), lh = parseFloat(cs.lineHeight) || 21, cw = parseFloat(cs.fontSize) * .6, cols = Math.max(20, Math.floor((el.clientWidth - 24) / cw)), lines = el.value.slice(0, index).split('\n'), n = 0;
+  for (var i = 0; i < lines.length - 1; i++) n += Math.max(1, Math.ceil(lines[i].length / cols));
+  n += Math.floor(lines[lines.length - 1].length / cols);
+  return n * lh;
+}
+
+/* ---------- captions, cards, progress ---------- */
+function say(scene, text) {
+  capScene.textContent = scene; capText.textContent = text; capBox.classList.add('on');
+  window.__caps.push({ t: Date.now(), scene: scene, text: text });
+}
+function hold(text) { return Math.max(2600, 1200 + text.length * 47); }
+async function speak(scene, text, act) {
+  say(scene, text);
+  var t0 = performance.now();
+  if (act) await act();
+  var need = hold(text) - (performance.now() - t0) * SPEED;
+  if (need > 0) await sleep(need);
+}
+function showCard(html, ms) { card.innerHTML = '<div>' + html + '<\/div>'; card.classList.add('on'); capBox.classList.remove('on'); return sleep(ms); }
+function hideCard() { card.classList.remove('on'); }
+function contactLine() {
+  var c = window.__contact || {}, real = c.email && !/example\.com$/i.test(c.email);
+  return real ? '<p class="k">Get in touch: ' + [c.name, c.email, c.phone].filter(Boolean).join(' &middot; ') + '<\/p>' : '<p class="k">Get in touch to start a pilot<\/p>';
+}
+
+/* ---------- the script ---------- */
+async function script() {
+  var n = 0, N = 12;
+  function scene() { n++; prog.firstChild.style.width = Math.round(n / N * 100) + '%'; }
+  var c = window.__contact || {}, days = (c.days && !/%/.test(c.days)) ? c.days : '14';
+
+  $('reset').click(); window.scrollTo(0, 0); place(pos.x, pos.y);
+  await sleep(600);
+  await showCard('<div class="m">A<\/div><h2>Appeal Desk<\/h2><p>Product walkthrough<\/p><p class="k">Denial letter in. Reviewed appeal out.<\/p>', 4200);
+  hideCard(); await sleep(700);
+
+  scene();
+  await speak('Welcome', 'Appeal Desk turns payer denial letters into reviewed appeal drafts, and keeps a record of who approved what.', async function () {
+    spotOn(q('.hero h1'), 14); await moveToEl(q('.hero h1'), { fx: .35 });
+  });
+  await speak('Welcome', 'This demo runs in your browser with synthetic letters only. Nothing is sent anywhere.', async function () {
+    var chips = qa('.chips .chip'); spotOn(chips, 10);
+    for (var i = 0; i < chips.length; i++) { await moveToEl(chips[i]); await sleep(350); }
+  });
+  spotOff();
+
+  scene();
+  await speak('The guide', 'The guide at the top always shows where you are, and what to do next.', async function () {
+    var co = q('.coach'); await focusEl(co, .3); spotOn(co, 6); await moveToEl($('stepper'), { fx: .18 }); await sleep(350); await moveToEl($('tip'), { fx: .35 });
+  });
+  spotOff();
+
+  scene();
+  await speak('Step 1 · The letter', 'Step 1: choose a denial letter. There are seven samples. This one is a medical-necessity denial for an MRI.', async function () {
+    await focusEl($('letterCard'), .35); spotOn($('sample'), 8); await pickSample(0);
+  });
+  await speak('Step 1 · The letter', 'This is what a payer sends: claim number, patient, denial code, reason, and an appeal deadline.', async function () {
+    spotOn($('letter'), 8); await moveToEl($('letter'), { fx: .5, fy: .3 }); await taScroll($('letter'), 170, 2200);
+  });
+  spotOff();
+
+  scene();
+  await speak('Privacy by design', 'Before anything else, patient names and IDs are swapped for tokens. Watch.', async function () {
+    await taScroll($('letter'), 0, 500); await clickEl($('tabRed')); spotOn($('redacted'), 8); await moveToEl($('redacted'), { fx: .4, fy: .35 });
+  });
+  await speak('Privacy by design', 'Only this token version would ever go to an AI model. The real names stay on your computer.', async function () {
+    var toks = qa('#redacted mark.tok').slice(0, 3);
+    for (var i = 0; i < toks.length; i++) { await moveToEl(toks[i]); await sleep(300); }
+  });
+  await speak('Privacy by design', 'Even a Social Security number typed into the letter is caught instantly.', async function () {
+    spotOff(); await clickEl($('tabOrig')); var L = $('letter'); spotOn(L, 8); await moveToEl(L, { fx: .5, fy: .85 });
+    L.focus(); L.setSelectionRange(L.value.length, L.value.length); L.scrollTop = L.scrollHeight;
+    await typeText(L, '\nPatient SSN: 123-45-6789', 30);
+    await clickEl($('tabRed')); spotOff();
+    var tk = qa('#redacted mark.tok').filter(function (m) { return /SSN/.test(m.textContent); })[0];
+    if (tk) { L = $('redacted'); L.scrollTop = L.scrollHeight; spotOn(tk, 10); await moveToEl(tk); }
+  });
+  spotOff(); await clickEl($('tabOrig')); await pickSample(0);
+
+  scene();
+  await speak('Step 2 · Analyze', 'Step 2: press Analyze. Appeal Desk reads the letter, replaces identifiers, and prepares a draft.', async function () {
+    await focusEl($('letterCard'), .35); spotOn($('go'), 10); await clickEl($('go')); spotOff();
+    await until(function () { return !$('out').hidden && $('busy').hidden && !$('result').hidden; }, 9000); await sleep(1000);
+  });
+
+  scene();
+  var tl = qa('#tiles .tile');
+  await speak('Reading the result', 'The ring counts the days left to appeal. Green is safe, amber is close, red is overdue.', async function () {
+    await scrollTo(window.pageYOffset + $('out').getBoundingClientRect().top - 70); spotOn(tl[0], 8); await moveToEl(tl[0]);
+  });
+  await speak('Reading the result', 'Next to it, the amount at stake.', async function () { spotOn(tl[1], 8); await moveToEl(tl[1]); });
+  await speak('Reading the result', 'And the denial type. Here it is medical necessity, code CO-50.', async function () { spotOn(tl[2], 8); await moveToEl(tl[2]); });
+  await speak('Reading the result', 'Warnings appear before any drafting: deadlines, high-value claims, and denials that are often unrecoverable.', async function () {
+    spotOn($('flags'), 8); await moveToEl($('flags'), { fx: .3, fy: .4 });
+  });
+  await speak('Reading the result', 'Key claim details are pulled out automatically, so nobody has to retype them.', async function () {
+    await focusEl($('fields'), .4); spotOn($('fields'), 6); await moveToEl($('fields'), { fx: .5, fy: .3 });
+  });
+  await speak('Reading the result', 'It suggests the right approach. This one needs a clinical appeal with a peer-to-peer request.', async function () {
+    await focusEl($('strategy'), .4); spotOn($('strategy'), 8); await moveToEl($('strategy'), { fx: .3 });
+  });
+  await speak('Reading the result', 'And it lists the documents to attach. Tick them off as your team gathers them.', async function () {
+    await focusEl($('docs'), .45); spotOn([$('docs'), $('docsum')], 8);
+    var bx = qa('#docs input'); await clickEl(bx[0]); await clickEl(bx[1]);
+  });
+  spotOff();
+
+  scene();
+  var D = $('draft'), a = D.value.indexOf('[ADD: two or three'), b = a < 0 ? -1 : D.value.indexOf(']', a) + 1;
+  await speak('The draft', 'The draft never invents facts. Where a clinical fact is needed, it leaves an ADD placeholder.', async function () {
+    await focusEl(D, .4); spotOn(D, 8); await moveToEl(D, { fx: .5, fy: .4 });
+    if (a >= 0) { await taScroll(D, visualTop(D, a) - 60, 1200); D.focus(); D.setSelectionRange(a, b); }
+  });
+  await speak('The draft', 'Your reviewer fills in what only a human knows.', async function () {
+    if (a >= 0) await typeText(D, 'The patient completed eight weeks of physical therapy and still has leg weakness. (Synthetic example.)', 34, a, b);
+  });
+  await speak('The draft', 'A note can be added for the record too.', async function () {
+    spotOff(); await clickEl($('note')); await typeText($('note'), 'Clinical notes attached.', 30);
+  });
+
+  scene();
+  await speak('Step 3 · A human decides', 'Step 3: a named person decides. Approve, escalate or discard. The software cannot decide for them.', async function () {
+    var btns = [$('approve'), $('escalate'), $('discard')]; await focusEl($('approve'), .5); spotOn(btns, 10);
+    await moveToEl($('escalate')); await sleep(300); await moveToEl($('discard')); await sleep(300);
+    spotOff(); await clickEl($('approve')); await sleep(600);
+  });
+  await speak('Step 3 · A human decides', 'Approved. The draft is marked as edited by a human, and the decision goes on the record.', async function () { await sleep(400); });
+
+  scene();
+  await speak('The record', 'Every step becomes a block: letter received, draft created, human decision.', async function () {
+    await focusEl($('auditbox'), .35); spotOn($('chain'), 8);
+    var bl = qa('#chain .block'); for (var i = 0; i < bl.length; i++) { await moveToEl(bl[i], { fy: .3 }); await sleep(350); }
+  });
+  await speak('The record', 'Each block carries a fingerprint that includes the block before it. The "prev" of one block is the "hash" of the last.', async function () {
+    var hs = qa('#chain .hs'), pv = qa('#chain .pv');
+    spotOn(hs[0], 8); await moveToEl(hs[0]); await sleep(700);
+    spotOn(pv[1], 8); await moveToEl(pv[1]); await sleep(700);
+    spotOn(hs[1], 8); await moveToEl(hs[1]); await sleep(500);
+    spotOn(pv[2], 8); await moveToEl(pv[2]);
+  });
+  spotOff();
+
+  scene();
+  await speak('Try to cheat', "Now let's try to cheat. Someone quietly edits the record after the fact.", async function () {
+    await focusEl($('tamperBox'), .5); spotOn($('tamperBox'), 8); await clickEl($('tamper')); spotOff();
+  });
+  await speak('Try to cheat', 'Caught. The chain no longer matches, and it shows exactly which entry was changed.', async function () {
+    await focusEl($('auditbox'), .3); spotOn($('banner'), 8); await moveToEl($('banner'), { fx: .4 });
+    var bad = q('#chain .block.bad'); if (bad) { spotOn(bad, 8); await moveToEl(bad); }
+  });
+  await speak('Try to cheat', 'Undo the change, and the record verifies again.', async function () {
+    spotOff(); await focusEl($('tamperBox'), .5); await clickEl($('undo')); await sleep(400);
+  });
+
+  scene();
+  await speak('The audit report', 'One click gives a printable report for each case, useful when your US clients ask how AI was used.', async function () {
+    await focusEl($('auditbox'), .3); await clickEl($('viewreport')); await sleep(500);
+    await scrollTo(window.pageYOffset + $('report').getBoundingClientRect().top - 30);
+    await moveToEl($('report').querySelector('h2'), { fx: .2 });
+    await scrollTo(window.pageYOffset + 520, 2600);
+  });
+  await speak('The audit report', 'Claim details, the approved letter, and the full trail, ready to hand to a client or an auditor.', async function () {
+    await scrollTo(window.pageYOffset + 520, 2600);
+  });
+  await scrollTo(window.pageYOffset + $('closereport').getBoundingClientRect().top - 90); await clickEl($('closereport')); await sleep(500);
+
+  scene();
+  await speak('Another case', 'Here is a different case: a timely-filing denial, high value, with the appeal deadline only nine days away.', async function () {
+    await scrollTo(0); await focusEl($('letterCard'), .35); spotOn($('sample'), 8); await pickSample(2); spotOff();
+    await clickEl($('go')); await until(function () { return !$('out').hidden && $('busy').hidden && !$('result').hidden; }, 9000); await sleep(900);
+  });
+  await speak('Another case', 'Appeal Desk flags the urgency, and warns that these denials are often unrecoverable without proof of the original submission.', async function () {
+    await scrollTo(window.pageYOffset + $('out').getBoundingClientRect().top - 70);
+    var t0 = qa('#tiles .tile')[0]; spotOn(t0, 8); await moveToEl(t0); await sleep(500); spotOn($('flags'), 8); await moveToEl($('flags'), { fx: .3, fy: .3 });
+  });
+  spotOff();
+
+  scene();
+  await speak('What it is, and is not', 'Appeal Desk drafts and keeps records. It does not submit appeals or decide coverage. Your people stay in control.', async function () {
+    await scrollTo(0); await moveTo(640, 220);
+  });
+  await showCard('<div class="m">A<\/div><h2>Try it on your own letters<\/h2><p>A ' + days + '-day pilot on redacted or synthetic letters<\/p>' + contactLine() + '<small>No real patient data until a written agreement is in place.<\/small>', 6500);
+  prog.firstChild.style.width = '100%';
+}
+
+/* ---------- run control ---------- */
+async function start() {
+  build(); if (running) return;
+  running = true; aborted = false; paused = false; pauseBtn.textContent = 'Pause';
+  root.hidden = false; fx.setTour(true); window.__tourDone = false; window.__caps = [];
+  hideCard(); spotOff(); place(pos.x, pos.y);
+  try { await script(); }
+  catch (e) { if (e !== ABORT) { window.__tourError = String(e && e.stack || e); console.error(e); } }
+  var wasAborted = aborted; running = false;
+  if (!wasAborted && !REC) { await new Promise(function (r) { setTimeout(r, 1500); }); }
+  if (!REC) cleanup();
+  window.__caps.push({ t: Date.now(), end: true });
+  window.__tourDone = true;
+}
+function cleanup() { if (root) { root.hidden = true; hideCard(); spotOff(); capBox.classList.remove('on'); } fx.setTour(false); running = false; }
+function stop() { aborted = true; setTimeout(cleanup, 60); }
+window.__startTour = function () { if (!running) start(); };
+
+if (REC) {
+  build();
+  var go = function () { setTimeout(start, 1400); };
+  if (document.readyState === 'complete') go(); else window.addEventListener('load', go);
+}
+})();
+
+</script>
+</body>
+</html>
