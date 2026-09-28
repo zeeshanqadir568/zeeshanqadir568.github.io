@@ -272,7 +272,7 @@ function stkImg(img, name) {
 
 const NICHES = {
   clinic: {
-    tab: "Clinic", closed: "Aap ka clinic band hota hai.", stickers: ["Tooth", "Stethoscope"], name: "Smile Studio Dental",
+    tab: "Clinic", closed: "Aap ka clinic band hota hai.", stickers: ["Tooth", "Stethoscope"], name: "Demo Dental Clinic",
     hours: { en: "Mon–Sat, 10am–9pm. Sunday closed.", ur: "Somvaar se Hafta, subah 10 se raat 9 baje tak. Itwaar ko band." },
     location: { en: "Main Double Road, near the Metro station, Rawalpindi.", ur: "Main Double Road, Metro station ke qareeb, Rawalpindi." },
     services: [["Checkup", 1500], ["Scaling / cleaning", 4000], ["Filling", 5000], ["Root canal", 18000]],
@@ -285,7 +285,7 @@ const NICHES = {
       ur: "Afsos hai aap ko takleef hai. Shadeed dard ya sujan ke liye hum usi din ka emergency slot dete hain. Sab se pehla slot book kar doon?" }]]
   },
   salon: {
-    tab: "Salon", closed: "Aap ka salon band hota hai.", stickers: ["Scissors", "Lipstick"], name: "Glow Salon & Spa",
+    tab: "Salon", closed: "Aap ka salon band hota hai.", stickers: ["Scissors", "Lipstick"], name: "Demo Beauty Salon",
     hours: { en: "Every day, 11am–10pm.", ur: "Rozana, subah 11 se raat 10 baje tak." },
     location: { en: "Jinnah Super, F-7 Markaz, Islamabad.", ur: "Jinnah Super, F-7 Markaz, Islamabad." },
     services: [["Haircut", 2500], ["Facial", 4500], ["Party makeup", 9000], ["Bridal (trial)", 15000]],
@@ -298,7 +298,7 @@ const NICHES = {
       ur: "Mubarak ho! Bridal package Rs 45,000 se shuru hai aur trial is mein shamil hai. Pehle trial book kar doon?" }]]
   },
   property: {
-    tab: "Real estate", closed: "Aap ka office band hota hai.", stickers: ["House with garden", "Key"], name: "Capital Homes",
+    tab: "Real estate", closed: "Aap ka office band hota hai.", stickers: ["House with garden", "Key"], name: "Demo Real Estate",
     hours: { en: "Mon–Sat, 10am–7pm. Site visits on Sunday by appointment.", ur: "Somvaar se Hafta, subah 10 se shaam 7 baje tak. Itwaar ko site visit sirf appointment par." },
     location: { en: "Office 12, Civic Center, Bahria Town Phase 4, Rawalpindi.", ur: "Office 12, Civic Center, Bahria Town Phase 4, Rawalpindi." },
     services: [["5 marla house visit", 0], ["10 marla house visit", 0], ["Plot file enquiry", 0], ["Rent a house", 0]],
@@ -590,7 +590,7 @@ function selectNiche(key) {
   document.body.dataset.niche = key;
   $("closed").textContent = N.closed;
   document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", String(b.dataset.k === key)));
-  $("bizName").textContent = N.name + " (demo)";
+  $("bizName").textContent = N.name;
   stkImg($("avatarImg"), N.stickers[0]);
   buildScene();
   $("log").innerHTML = "";
