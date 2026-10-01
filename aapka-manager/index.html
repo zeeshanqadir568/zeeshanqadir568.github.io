@@ -148,6 +148,7 @@ form.send button{border:0;background:linear-gradient(135deg,var(--brand),var(--b
 .note time{font-size:11.5px;color:var(--muted)}
 @keyframes slide{from{opacity:0;transform:translateX(24px) scale(.95)}to{opacity:1;transform:none}}
 .hint{font-size:13px;color:var(--muted);padding:0 16px 14px;margin:0}
+.sample{font-size:12.5px;color:var(--muted);background:var(--surface-2);border-bottom:1px solid var(--line);padding:6px 14px;margin:0}
 
 /* Benefits */
 section.how{margin:40px 0}
@@ -205,7 +206,7 @@ footer a{color:inherit}
       </div>
     </div>
     <div class="scene" id="scene" aria-hidden="true">
-      <div class="bubble"><b>11:04 PM</b> · Fee kitni hai? 🤔</div>
+      <div class="bubble"><b>11:04 PM</b> · <span id="heroAsk">Fee kitni hai?</span> 🤔</div>
       <div class="bubble b2">Booked ✅ <b>1.8s</b></div>
     </div>
   </section>
@@ -217,6 +218,7 @@ footer a{color:inherit}
         <div><b id="bizName">…</b><span>● online · replies instantly</span></div>
         <span class="try-me">Try me 👇</span>
       </div>
+      <p class="sample" id="sampleNote" hidden></p>
       <div class="log" id="log" aria-live="polite"></div>
       <div class="chips" id="chips"></div>
       <form class="send" id="form" autocomplete="off">
@@ -252,7 +254,7 @@ footer a{color:inherit}
     <a id="ctaLink" href="#">Baat karein →</a>
   </div>
 
-  <footer>Ye demo hai. Is mein dikhaye gaye business farzi hain, asal nahi. 3D emoji: Microsoft Fluent Emoji (MIT). Built by <a href="https://zeeshanqadir568.github.io/">Zeeshan Qadir</a>.</footer>
+  <footer id="footNote">Ye demo hai. Is mein dikhaye gaye business farzi hain, asal nahi. 3D emoji: Microsoft Fluent Emoji (MIT). Built by <a href="https://zeeshanqadir568.github.io/">Zeeshan Qadir</a>.</footer>
 </div>
 
 <script>
@@ -280,6 +282,8 @@ const NICHES = {
     slots: ["11:00 am", "1:30 pm", "5:00 pm", "7:30 pm"],
     closedDay: 0,
     ticker: ["“Fee kitni hai?”", "“Kal ka time mil jayega?”", "“Dant mein dard hai”"],
+    ui: { chips: { ur: ["Fee kitni hai?", "Timing kya hai?", "Appointment chahiye", "Address?"], en: ["What are your fees?", "Opening hours?", "Book an appointment", "Where are you?"] },
+      welcome: "Fees, timing, address ya appointment, kuch bhi poochein.", bookWord: { ur: "appointment", en: "an appointment" }, priceHead: "Hamari fees" },
     extra: [[/emergency|dard|pain|swelling|sujan/, {
       en: "Sorry you're in pain. For severe pain or swelling we keep same-day emergency slots. Shall I book the earliest one?",
       ur: "Afsos hai aap ko takleef hai. Shadeed dard ya sujan ke liye hum usi din ka emergency slot dete hain. Sab se pehla slot book kar doon?" }]]
@@ -293,6 +297,8 @@ const NICHES = {
     slots: ["12:00 pm", "3:00 pm", "6:00 pm", "8:30 pm"],
     closedDay: -1,
     ticker: ["“Bridal package kitne ka hai?”", "“Aaj facial ka slot hai?”", "“Party makeup rate?”"],
+    ui: { chips: { ur: ["Rates kya hain?", "Timing kya hai?", "Booking karni hai", "Address?"], en: ["What are your rates?", "Opening hours?", "Book a slot", "Where are you?"] },
+      welcome: "Rates, timing, address ya booking, kuch bhi poochein.", bookWord: { ur: "slot", en: "a slot" }, priceHead: "Hamare rates" },
     extra: [[/bridal|shadi|mehndi|barat|walima/, {
       en: "Congratulations! Bridal packages start at Rs 45,000 and include a trial. Would you like to book the trial first?",
       ur: "Mubarak ho! Bridal package Rs 45,000 se shuru hai aur trial is mein shamil hai. Pehle trial book kar doon?" }]]
@@ -306,6 +312,9 @@ const NICHES = {
     slots: ["11:00 am", "2:00 pm", "4:30 pm", "6:00 pm"],
     closedDay: -1,
     ticker: ["“10 marla ka rate?”", "“Qist par plot milta hai?”", "“Kal site visit ho sakti hai?”"],
+    ui: { chips: { ur: ["10 marla ka rate?", "Site visit book karni hai", "Qist par plot milta hai?", "Office kahan hai?"], en: ["Price of a 10 marla house?", "Book a site visit", "Plots on installments?", "Where is your office?"] },
+      welcome: "Rate, available ghar ya plot, site visit ya office ka address, kuch bhi poochein.", bookWord: { ur: "site visit", en: "a site visit" }, priceHead: "Rates",
+      which: { ur: "Zaroor! Kaunsa ghar ya plot dekhna chahenge?", en: "Sure! Which property would you like to see?" } },
     priceText: {
       en: "Current listings:\n• 5 marla house: Rs 1.6–1.9 crore\n• 10 marla house: Rs 3.2–3.8 crore\n• Rent (10 marla): from Rs 90,000/month\nWant me to book a site visit?",
       ur: "Is waqt ki listings:\n• 5 marla ghar: Rs 1.6–1.9 crore\n• 10 marla ghar: Rs 3.2–3.8 crore\n• Kiraya (10 marla): Rs 90,000 mahana se\nSite visit book kar doon?" },
@@ -322,10 +331,14 @@ const INTENTS = [
   ["book", /\b(book|booking|appointment|appoint|slot|visit|milna|aana|aa sakt|reserve|time chahiye|waqt chahiye)\b/],
   ["price", /\b(fee|fees|price|prices|kitn[ai]|kitne|charges?|rate|rates|paise|cost|kharcha|rs|rupay|package)\b/],
   ["hours", /\b(timing|timings|time|waqt|open|khula|khuli|band|hours|kab tak|kab se|sunday|itwaar|jumma)\b/],
-  ["location", /\b(kahan|kidhar|address|location|map|jagah|pata|direction)\b/],
+  ["location", /\b(kahan|kidhar|address|location|map|jagah|pata|direction|where)\b/],
   ["thanks", /\b(shukriya|thanks|thank you|thx|jazak|meherbani)\b/],
   ["greet", /\b(salam|assalam|aoa|hi|hello|hey|slam)\b/]
 ];
+
+// Optional ?name= shows the demo under a prospect's business name (text only, capped length).
+const CUSTOM_NAME = (new URLSearchParams(location.search).get("name") || "").replace(/[\u0000-\u001f<>]/g, "").trim().slice(0, 60);
+const bizName = () => CUSTOM_NAME || NICHES[niche].name;
 
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 let niche = "clinic", lang = "ur", flow = null, busy = false, pendingTimer = null;
@@ -437,9 +450,7 @@ function setChips(list) {
 }
 
 function defaultChips() {
-  setChips(lang === "ur"
-    ? ["Fee kitni hai?", "Timing kya hai?", "Appointment chahiye", "Address?"]
-    : ["What are your prices?", "Opening hours?", "Book an appointment", "Where are you?"]);
+  setChips(t(NICHES[niche].ui.chips));
 }
 
 function botSay(text, chips, after) {
@@ -459,7 +470,7 @@ function botSay(text, chips, after) {
 }
 
 function emptyFeed() {
-  $("feed").innerHTML = '<div class="empty"><img data-stk="Bell" alt="">Abhi koi booking nahi.<br>Chat mein appointment book karein, woh yahan foran nazar aayegi.</div>';
+  $("feed").innerHTML = '<div class="empty"><img data-stk="Bell" alt="">Abhi koi booking nahi.<br>Chat mein ' + NICHES[niche].ui.bookWord.ur + ' book karein, woh yahan foran nazar aayegi.</div>';
   stkImg($("feed").querySelector("img"), "Bell");
 }
 
@@ -490,13 +501,13 @@ function priceText() {
   const N = NICHES[niche];
   if (N.priceText) return t(N.priceText);
   const lines = N.services.map(([s, p]) => "• " + s + ": " + money(p)).join("\n");
-  return lang === "ur" ? "Hamari fees:\n" + lines + "\nAppointment book kar doon?" : "Our prices:\n" + lines + "\nShall I book an appointment?";
+  return lang === "ur" ? N.ui.priceHead + ":\n" + lines + "\n" + N.ui.bookWord.ur[0].toUpperCase() + N.ui.bookWord.ur.slice(1) + " book kar doon?" : "Our prices:\n" + lines + "\nShall I book " + N.ui.bookWord.en + "?";
 }
 
 function startBooking() {
   const N = NICHES[niche];
   flow = { step: "service" };
-  botSay(lang === "ur" ? "Zaroor! Kaunsi " + t(N.serviceWord) + " chahiye?" : "Sure! Which " + t(N.serviceWord) + " would you like?",
+  botSay(N.ui.which ? t(N.ui.which) : lang === "ur" ? "Zaroor! Kaunsi " + t(N.serviceWord) + " chahiye?" : "Sure! Which " + t(N.serviceWord) + " would you like?",
     N.services.map(s => s[0]));
 }
 
@@ -536,8 +547,8 @@ function handleFlow(text) {
     if (digits.length < 10 || digits.length > 13) return botSay(ur ? "Number sahi nahi laga. Aise likhein: 03xx xxxxxxx" : "That number doesn't look right. Please use a format like 03xx xxxxxxx.", []);
     flow.phone = digits.replace(/^92/, "0").replace(/^(\d{4})(\d+)/, "$1 $2");
     const done = ur
-      ? "Booking confirm ho gayi ✅\n" + flow.service + "\n" + flow.day + ", " + flow.slot + "\nAap ko aik din pehle reminder bhej diya jayega. Address: " + t(N.location)
-      : "You're booked ✅\n" + flow.service + "\n" + flow.day + ", " + flow.slot + "\nWe'll send a reminder the day before. Address: " + t(N.location);
+      ? "Booking confirm ho gayi ✅\n" + flow.service + "\n" + flow.day + ", " + flow.slot + "\nAap ko aik din pehle reminder bhej diya jayega." + (CUSTOM_NAME ? "" : " Address: " + t(N.location))
+      : "You're booked ✅\n" + flow.service + "\n" + flow.day + ", " + flow.slot + "\nWe'll send a reminder the day before." + (CUSTOM_NAME ? "" : " Address: " + t(N.location));
     const b = flow; flow = null;
     return botSay(done, [OWNER_CHIP], () => {
       stats.booked++; renderStats();
@@ -553,22 +564,22 @@ function reply(text) {
   if (intent === "cancel" && flow) { flow = null; return botSay(ur ? "Koi baat nahi, booking cancel kar di. Aur kuch?" : "No problem, I've cancelled that. Anything else?"); }
   if (flow) return handleFlow(text);
   const extra = N.extra.find(([re]) => re.test(low));
-  if (extra) return botSay(t(extra[1]), ur ? ["Haan, book karein", "Fee kitni hai?"] : ["Yes, book it", "What are your prices?"]);
+  if (extra) return botSay(t(extra[1]), [ur ? "Haan, book karein" : "Yes, book it", t(N.ui.chips)[0]]);
   if (/^(haan|han|yes|ji|jee|ok|okay|theek)\b/.test(low)) return startBooking();
   switch (intent) {
     case "book": return startBooking();
     case "price": return botSay(priceText());
     case "hours": return botSay(t(N.hours));
-    case "location": return botSay(t(N.location));
+    case "location": return botSay(CUSTOM_NAME ? (ur ? "Asal setup mein yahan aap ka address aur Google Maps link aayega." : "In the real setup, your address and Google Maps link go here.") : t(N.location));
     case "thanks": return botSay(ur ? "Aap ka shukriya! Kabhi bhi message kar dein." : "You're welcome! Message us any time.");
-    case "greet": return botSay(ur ? "Wa Alaikum Assalam! " + N.name + " mein khush aamdeed. Main aap ki kya madad kar sakta hoon?" : "Hello! Welcome to " + N.name + ". How can I help?");
+    case "greet": return botSay(ur ? "Wa Alaikum Assalam! " + bizName() + " mein khush aamdeed. Main aap ki kya madad kar sakta hoon?" : "Hello! Welcome to " + bizName() + ". How can I help?");
     case "human":
       notify("📞 Customer wants a call back", "“" + text.slice(0, 120) + "”", true);
       return botSay(ur ? "Main ne owner ko bata diya hai. Woh jald aap ko call karenge." : "I've let the owner know. They'll call you back shortly.");
   }
   notify("❓ Question for you", "“" + text.slice(0, 120) + "”", true);
-  botSay(ur ? "Is sawal ka pakka jawab main owner se le kar deta hoon. Tab tak kya main appointment book kar doon?"
-            : "Let me get the owner to answer that one properly. Meanwhile, shall I book you an appointment?");
+  botSay(ur ? "Is sawal ka pakka jawab main owner se le kar deta hoon. Tab tak kya main " + N.ui.bookWord.ur + " book kar doon?"
+            : "Let me get the owner to answer that one properly. Meanwhile, shall I book you " + N.ui.bookWord.en + "?");
 }
 
 const OWNER_CHIP = "Owner ko kya dikha? 👀";
@@ -590,13 +601,16 @@ function selectNiche(key) {
   document.body.dataset.niche = key;
   $("closed").textContent = N.closed;
   document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", String(b.dataset.k === key)));
-  $("bizName").textContent = N.name;
+  $("bizName").textContent = bizName();
   stkImg($("avatarImg"), N.stickers[0]);
   buildScene();
   $("log").innerHTML = "";
   stats.chats = 0; stats.booked = 0; stats.replyMs = []; renderStats();
   emptyFeed();
-  addMsg("Assalam o Alaikum! " + N.name + " mein khush aamdeed 👋\nFees, timing, address ya appointment, kuch bhi poochein. Urdu ya English, jaise aap chahein.", "bot");
+  addMsg("Assalam o Alaikum! " + bizName() + " mein khush aamdeed 👋\n" + N.ui.welcome + " Urdu ya English, jaise aap chahein.", "bot");
+  $("heroAsk").textContent = N.ui.chips.ur[0];
+  $("tkText").textContent = N.ticker[0] + " → reply in 1.8s ✓";
+  $("input").placeholder = "Message likhein… e.g. " + N.ui.chips.ur[0].toLowerCase();
   defaultChips();
   try { const u = new URL(location.href); u.searchParams.set("for", key); history.replaceState(null, "", u); } catch (e) {}
 }
@@ -635,6 +649,11 @@ if (!REDUCED && matchMedia("(hover:hover)").matches) document.querySelectorAll("
     : "mailto:" + CONTACT.EMAIL + "?subject=" + encodeURIComponent("Aapka Manager - AI receptionist") + "&body=" + encodeURIComponent(msg);
 })();
 
+if (CUSTOM_NAME) {
+  $("sampleNote").hidden = false;
+  $("sampleNote").textContent = CUSTOM_NAME + " ke liye sample demo. Fees aur timing sirf misaal hain; asal setup mein aap ki apni hongi.";
+  $("footNote").firstChild.textContent = "Ye " + CUSTOM_NAME + " ke liye sample demo hai, abhi asal system se juda hua nahi. 3D emoji: Microsoft Fluent Emoji (MIT). Built by ";
+}
 selectNiche(new URLSearchParams(location.search).get("for") || "clinic");
 </script>
 <script data-goatcounter="https://zeeshan.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
