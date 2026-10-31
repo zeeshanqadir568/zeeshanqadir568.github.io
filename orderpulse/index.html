@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ur-Latn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Parcel bhejne se pehle customer se WhatsApp par tasdeeq lein. OrderPulse ka namuna order khud chala kar dekhein.">
+<title>OrderPulse Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;700&family=Noto+Nastaliq+Urdu:wght@400;600&display=swap">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#070b16; --panel:#0f1626; --line:#25314b; --fg:#eef3ff; --muted:#a2afc9;
+  --cyan:#2be4f0; --pink:#ff4fa3; --green:#3df2a0; --amber:#ffc35c; --bubble:#163a35; --chat:#0b1220; --me:#1e2a44;
+  --display:"Bricolage Grotesque","Segoe UI",sans-serif;
+  --body:"Figtree","Segoe UI",sans-serif;
+  --urdu:"Noto Nastaliq Urdu","Jameel Noori Nastaleeq",serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font:400 17px/1.55 var(--body);overflow-x:hidden}
+#net{position:fixed;inset:0;width:100%;height:100%;z-index:0;opacity:.55;pointer-events:none}
+.wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding-block:48px 72px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:grid;gap:64px}
+h1,h2,h3{font-family:var(--display);line-height:1.08;margin:0;text-wrap:balance}
+h1{font-size:clamp(38px,7vw,68px);font-weight:800;letter-spacing:-.02em;max-width:15ch}
+h1 em{font-style:normal;color:var(--cyan);text-shadow:0 0 28px rgba(43,228,240,.55)}
+h2{font-size:clamp(26px,4vw,38px);font-weight:800}
+h3{font-size:19px;font-weight:600}
+p{margin:0}
+.lead{font-size:clamp(18px,2.4vw,21px);color:var(--muted);max-width:56ch}
+.brand{font:600 15px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--green)}
+header{display:grid;gap:18px}
+section{display:grid;gap:22px;min-width:0}
+.sub{color:var(--muted);max-width:60ch}
+
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;align-items:start}
+.controls{display:grid;gap:18px;min-width:0}
+.rail{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.rail li{display:grid;grid-template-columns:30px minmax(0,1fr);gap:12px;padding:10px 12px;border-radius:10px;color:var(--muted);transition:background .25s,color .25s}
+.dot{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.rail li.done .dot{background:var(--green);border-color:var(--green);color:#04231a}
+.rail li.now{background:var(--panel);color:var(--fg);box-shadow:inset 0 0 0 1px var(--cyan),0 0 24px rgba(43,228,240,.18)}
+.rail li.now .dot{border-color:var(--cyan);color:var(--cyan)}
+.rail li.bad.done .dot{background:var(--pink);border-color:var(--pink);color:#3a0720}
+.rail li.wait.done .dot{background:var(--amber);border-color:var(--amber);color:#3a2800}
+.rail b{display:block;font-weight:700;color:inherit}
+.rail span.t{display:block;font-size:15px}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;gap:4px}
+.note small{font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--cyan);font-weight:700}
+.actions{display:flex;flex-wrap:wrap;gap:10px}
+button{font:700 16px var(--body);min-height:46px;padding:0 18px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer;transition:transform .15s,box-shadow .2s,border-color .2s}
+button:hover{transform:translateY(-1px);border-color:var(--cyan)}
+button:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+button.go{background:var(--cyan);border-color:var(--cyan);color:#04202a;box-shadow:0 0 22px rgba(43,228,240,.4)}
+button.yes{background:var(--green);border-color:var(--green);color:#04231a}
+button.no{background:var(--pink);border-color:var(--pink);color:#3a0720}
+button.quiet{background:transparent;color:var(--muted)}
+.ask{font-weight:700}
+
+.phone{background:#000;border:1px solid var(--line);border-radius:30px;padding:10px;box-shadow:0 0 44px rgba(43,228,240,.16);min-width:0}
+.phead{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;background:var(--panel);border-radius:20px 20px 0 0}
+.phead b{font-size:15px}
+.phead small{display:block;color:var(--muted);font-size:12px}
+.lang{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.lang button{min-height:32px;padding:0 10px;font-size:13px;border:0;border-radius:0;background:transparent;color:var(--muted)}
+.lang button[aria-pressed=true]{background:var(--cyan);color:#04202a}
+.lang button:hover{transform:none}
+.chat{height:440px;overflow-y:auto;background:var(--chat);border-radius:0 0 20px 20px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.b{max-width:90%;padding:9px 12px;border-radius:12px;background:var(--bubble);white-space:pre-line;font-size:15px;align-self:flex-start;overflow-wrap:anywhere;animation:pop .28s ease-out}
+.b.me{align-self:flex-end;background:var(--me)}
+.b.ur{font:400 15px/2.1 var(--urdu);direction:rtl;text-align:right}
+.b.sys{align-self:center;background:transparent;border:1px dashed var(--line);color:var(--muted);font-size:13.5px;text-align:center;max-width:100%}
+@keyframes pop{from{transform:translateY(8px) scale(.97);opacity:.4}to{transform:none;opacity:1}}
+
+.gets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
+.gets div{display:grid;gap:6px;align-content:start;border-top:2px solid var(--cyan);padding-top:12px;min-width:0}
+.gets p{color:var(--muted);font-size:15.5px}
+.need{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+.need ul{margin:0;padding-left:20px;display:grid;gap:8px;color:var(--muted)}
+.need ul b{color:var(--fg)}
+.status{border-left:3px solid var(--amber);padding-left:14px}
+.status b{color:var(--amber)}
+
+.decide{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:clamp(20px,4vw,36px);display:grid;gap:18px;box-shadow:0 0 50px rgba(255,79,163,.12)}
+.reply{display:grid;gap:12px}
+.copyline{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 14px;user-select:all}
+footer{color:var(--muted);font-size:14px}
+
+@media (max-width:860px){
+  .stage{grid-template-columns:minmax(0,1fr)}
+  .gets{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .need{grid-template-columns:minmax(0,1fr)}
+  .chat{height:360px}
+}
+@media (max-width:460px){.gets{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<canvas id="net" aria-hidden="true"></canvas>
+<div class="wrap">
+  <header>
+    <div class="brand">OrderPulse</div>
+    <h1>Parcel bhejne se pehle <em>customer se pooch lein</em></h1>
+    <p class="lead">COD order courier ko dene se pehle OrderPulse customer se WhatsApp par tasdeeq leta hai. Jis ne mana kar diya, wo parcel nikalta hi nahin.</p>
+  </header>
+
+  <section aria-labelledby="try">
+    <h2 id="try">Ek order khud chala kar dekhein</h2>
+    <p class="sub">Ye namuna order hai. Dekhein aap ke customer ko kya message milega aur aap ko kya nazar aayega.</p>
+    <div class="stage">
+      <div class="controls">
+        <ol class="rail" id="rail"></ol>
+        <div class="note" aria-live="polite"><small>Aap ke dashboard par</small><span id="dash"></span></div>
+        <div class="ask" id="ask" hidden>Customer kya jawab de?</div>
+        <div class="actions" id="actions"></div>
+      </div>
+      <div class="phone">
+        <div class="phead">
+          <div><b>Demo Store</b><small>Customer ka WhatsApp</small></div>
+          <div class="lang" role="group" aria-label="Message ki zubaan">
+            <button id="ur" aria-pressed="true">اردو</button>
+            <button id="en" aria-pressed="false">English</button>
+          </div>
+        </div>
+        <div class="chat" id="chat" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="gets">
+    <h2 id="gets">Aap ko kya milega</h2>
+    <div class="gets">
+      <div><h3>Khud-kaar WhatsApp</h3><p>Har status par customer ko message, Urdu ya English mein. Message ka matn aap badal sakte hain.</p></div>
+      <div><h3>Bhejne se pehle tasdeeq</h3><p>Haan, ji, nahi, cancel, Urdu ya Roman Urdu, jawab khud samajh liya jata hai. Saaf na ho to aap ko bataya jata hai.</p></div>
+      <div><h3>Apna tracking page</h3><p>Har order ka link, jis par status, rider aur delivery rating ho.</p></div>
+      <div><h3>Wapsi ki wajah</h3><p>Dashboard dikhata hai parcel kyun wapas aaya: number band, ghalat pata, customer ka inkar, ya jaali order.</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="need">
+    <h2 id="need">Shuru karne ke liye kya chahiye</h2>
+    <div class="need">
+      <ul>
+        <li><b>Aap ka store:</b> Shopify, WooCommerce ya apna panel.</li>
+        <li><b>WhatsApp Business number:</b> Twilio ke zariye, customer ko messages isi se jayenge.</li>
+        <li><b>Meta ki manzoori:</b> pehle se bheje janay wale message templates ke liye.</li>
+      </ul>
+      <p class="status"><b>Abhi ki haalat:</b> poora nizam demo mode mein test ho chuka hai. Asli WhatsApp number par pehla test pilot mein hoga, is liye shuru mein thore orders par chalayenge.</p>
+    </div>
+  </section>
+
+  <section class="decide" aria-labelledby="dec">
+    <h2 id="dec">Kya ye aap ke store ke liye theek hai?</h2>
+    <div class="actions">
+      <button class="yes" id="dYes">Haan, mere store par try karna hai</button>
+      <button class="quiet" id="dNo">Nahi, abhi nahi</button>
+    </div>
+    <div class="reply" id="rYes" hidden>
+      <p>Behtareen. Jis ne aap ko ye page bheja hai, usay ye message bhej dein:</p>
+      <div class="copyline" id="line">OrderPulse pilot chahiye. Mera store: ____ , rozana orders: ____</div>
+      <div class="actions"><button id="copy">Message copy karein</button></div>
+    </div>
+    <p id="rNo" hidden>Koi baat nahi, shukriya ke aap ne dekha. Jab COD wapsi masla bane, ye page dobara khol lein.</p>
+  </section>
+
+  <footer>Upar wala order, customer aur rider namuna hain.</footer>
+</div>
+
+<script>
+const T={
+ received:["آپ کا آرڈر #1042 موصول ہو گیا ہے۔ جلد ہی اس کی تصدیق کی جائے گی۔ — Demo Store","Order #1042 has been received. We will confirm it shortly. — Demo Store"],
+ confirmed:["آپ کا آرڈر #1042 کنفرم ہو گیا ہے اور تیار کیا جا رہا ہے۔ — Demo Store","Order #1042 is confirmed and is being prepared. — Demo Store"],
+ ask:["آپ کا آرڈر #1042 روانہ ہونے والا ہے۔ تصدیق کے لیے YES یا ہاں، اور منسوخ کرنے کے لیے NO یا نہیں لکھ کر بھیجیں۔ — Demo Store","Your order #1042 is about to be dispatched. Please reply YES to confirm or NO to cancel. — Demo Store"],
+ thanks:["شکریہ۔ آپ کا آرڈر #1042 کنفرم ہے اور جلد روانہ کیا جائے گا۔ — Demo Store","Thank you. Order #1042 is confirmed and will be dispatched shortly. — Demo Store"],
+ sent:["آپ کا آرڈر #1042 روانہ کر دیا گیا ہے۔\nلائیو ٹریکنگ: [tracking link]\n— Demo Store","Order #1042 has been dispatched.\nLive tracking: [tracking link]\n— Demo Store"],
+ out:["آپ کا آرڈر #1042 ڈیلیوری کے لیے نکل چکا ہے۔\nرائیڈر: Imran\nٹریک کریں: [tracking link]\nبراہِ کرم اپنا فون دستیاب رکھیں اور ادائیگی تیار رکھیں۔ ادائیگی کا طریقہ یا رقم بدلنے کی کوئی بھی درخواست فراڈ ہے — اس آرڈر کی تمام اطلاعات صرف اسی واٹس ایپ نمبر سے آئیں گی۔ — Demo Store","Order #1042 is out for delivery.\nRider: Imran\nTrack: [tracking link]\nPlease keep your phone reachable and payment ready. Any request to change the payment method or amount is a scam — updates about this order come only from this WhatsApp number. — Demo Store"],
+ done:["آپ کا آرڈر #1042 ڈیلیور ہو گیا ہے۔ Demo Store سے خریداری کا شکریہ۔","Order #1042 has been delivered. Thank you for shopping with Demo Store."],
+ cancel:["آپ کا آرڈر #1042 منسوخ کر دیا گیا ہے۔ اگر یہ غلطی سے ہوا ہے تو Demo Store سے رابطہ کریں۔","Order #1042 has been cancelled. Contact Demo Store if this is a mistake."],
+ hYes:["ہاں","YES"], hNo:["نہیں","NO"]
+};
+const S={
+ a:{t:"Order aaya",d:"Store se order khud aa gaya",m:["received"],dash:"Naya order #1042 list mein aa gaya."},
+ b:{t:"Aap ne confirm kiya",d:"Order tayyari mein",m:["confirmed"],dash:"Order tayyari mein hai. Customer ko khud bata diya gaya."},
+ c:{t:"Bhejne se pehle sawal",d:"Customer se tasdeeq",m:["ask"],dash:"Order yahin ruka hai. Jawab ke baghair courier ko nahin jayega."},
+ yes:{t:"Customer: Haan",d:"Tasdeeq mil gayi",m:["hYes:me","thanks"],dash:"Tasdeeq ho gayi. Ab parcel courier ko de sakte hain."},
+ sent:{t:"Parcel rawana",d:"Tracking link gaya",m:["sent"],dash:"Parcel rawana. Customer ke paas tracking link hai."},
+ out:{t:"Rider nikal gaya",d:"Fraud se khabardar bhi kiya",m:["out"],dash:"Customer ko rider ka naam aur fraud ki warning mil gayi."},
+ done:{t:"Delivered",d:"Order mukammal",m:["done"],dash:"Delivered. Delivery ki report mein shamil ho gaya."},
+ no:{t:"Customer: Nahi",d:"Parcel nahin nikla",bad:1,m:["hNo:me","cancel"],dash:"Order cancel. Wajah likhi gayi: customer ka inkar. Courier ko kuch nahin gaya."},
+ quiet:{t:"Koi jawab nahin",d:"Order ruka rehta hai",wait:1,m:["!12 ghante guzar gaye. Customer ne jawab nahin diya."],dash:"Order follow-up list mein aa gaya, taake aap call kar lein. System khud na bhejta hai, na cancel karta hai."}
+};
+const paths={yes:["yes","sent","out","done"],no:["no"],quiet:["quiet"]};
+const head=["a","b","c"];
+let lang=0,trail=[],branch=null;
+const $=id=>document.getElementById(id);
+
+function steps(){return branch?head.concat(paths[branch]):head.concat(["yes","sent","out","done"])}
+function draw(){
+  const all=steps(),cur=trail[trail.length-1];
+  $("rail").innerHTML=all.map((k,i)=>{
+    const s=S[k],idx=trail.indexOf(k);
+    const c=[idx>=0&&k!==cur?"done":"",k===cur?"now":"",s.bad?"bad":"",s.wait?"wait":""].join(" ");
+    return `<li class="${c}"><div class="dot">${idx>=0&&k!==cur?"✓":i+1}</div><div><b>${s.t}</b><span class="t">${s.d}</span></div></li>`;
+  }).join("");
+  $("dash").textContent=S[cur].dash;
+  const box=$("chat");box.innerHTML="";
+  trail.forEach(k=>S[k].m.forEach(m=>{
+    const d=document.createElement("div");
+    if(m[0]==="!"){d.className="b sys";d.textContent=m.slice(1)}
+    else{
+      const[key,who]=m.split(":");
+      d.className="b"+(who?" me":"")+(lang===0?" ur":"");
+      d.textContent=T[key][lang];
+    }
+    box.appendChild(d);
+  }));
+  box.scrollTop=box.scrollHeight;
+  const a=$("actions");a.innerHTML="";$("ask").hidden=true;
+  const btn=(txt,cls,fn)=>{const b=document.createElement("button");b.textContent=txt;b.className=cls;b.onclick=fn;a.appendChild(b)};
+  if(cur==="c"){
+    $("ask").hidden=false;
+    btn("Haan","yes",()=>pick("yes"));btn("Nahi","no",()=>pick("no"));btn("Koi jawab nahin","",()=>pick("quiet"));
+  }else if(cur===all[all.length-1]){
+    btn("Dusra jawab aazmayein","go",()=>{trail=head.slice();branch=null;draw()});
+    btn("Faisla karein","quiet",()=>$("dec").scrollIntoView());
+  }else btn("Agla qadam","go",()=>{trail.push(all[all.indexOf(cur)+1]);draw()});
+}
+function pick(k){branch=k;trail.push(paths[k][0]);draw()}
+function setLang(n){lang=n;$("ur").setAttribute("aria-pressed",n===0);$("en").setAttribute("aria-pressed",n===1);draw()}
+$("ur").onclick=()=>setLang(0);$("en").onclick=()=>setLang(1);
+$("dYes").onclick=()=>{$("rYes").hidden=false;$("rNo").hidden=true};
+$("dNo").onclick=()=>{$("rNo").hidden=false;$("rYes").hidden=true};
+$("copy").onclick=async e=>{
+  const b=e.currentTarget;
+  try{await navigator.clipboard.writeText($("line").textContent);b.textContent="Copy ho gaya"}
+  catch{const r=document.createRange();r.selectNodeContents($("line"));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent="Select ho gaya, copy kar lein"}
+};
+trail=["a"];draw();
+
+(function(){
+  const c=$("net"),x=c.getContext("2d");let w,h,p=[];
+  const size=()=>{w=c.width=innerWidth;h=c.height=innerHeight;const n=Math.min(70,Math.round(w*h/26000));
+    p=Array.from({length:n},()=>({x:Math.random()*w,y:Math.random()*h,a:(Math.random()-.5)*.35,b:(Math.random()-.5)*.35}))};
+  const frame=()=>{x.clearRect(0,0,w,h);
+    for(let i=0;i<p.length;i++){const q=p[i];q.x=(q.x+q.a+w)%w;q.y=(q.y+q.b+h)%h;
+      for(let j=i+1;j<p.length;j++){const r=p[j],d=Math.hypot(q.x-r.x,q.y-r.y);
+        if(d<150){x.strokeStyle=`rgba(43,228,240,${.22*(1-d/150)})`;x.beginPath();x.moveTo(q.x,q.y);x.lineTo(r.x,r.y);x.stroke()}}
+      x.fillStyle="rgba(61,242,160,.8)";x.beginPath();x.arc(q.x,q.y,1.8,0,7);x.fill()}
+  };
+  addEventListener("resize",()=>{size();frame()});size();frame();
+  if(!matchMedia("(prefers-reduced-motion: reduce)").matches){(function l(){frame();requestAnimationFrame(l)})()}
+})();
+</script>
+
+</body>
+</html>
