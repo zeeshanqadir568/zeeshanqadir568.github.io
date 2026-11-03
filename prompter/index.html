@@ -63,6 +63,15 @@
   let script = fromHash() || store.get("prompter.script") || "[Tap Edit and paste your script]\nHello, this is a test. Start reading and the text follows your voice.";
   store.set("prompter.script", script);
 
+  // Short links: #f=name loads s/name.txt next to this page.
+  const f = location.hash.match(/[#&]f=([a-z0-9-]+)/);
+  if (f) {
+    fetch("s/" + f[1] + ".txt", { cache: "no-store" })
+      .then(r => r.ok ? r.text() : Promise.reject())
+      .then(t => { script = t; store.set("prompter.script", t); pos = 0; render(); })
+      .catch(() => setStatus("Could not load the script. Tap Edit and paste it."));
+  }
+
   let size = parseInt(store.get("prompter.size") || "30", 10);
   const applySize = () => { document.documentElement.style.setProperty("--size", size + "px"); store.set("prompter.size", String(size)); };
   applySize();

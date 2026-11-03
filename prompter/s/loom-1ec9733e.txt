@@ -1,0 +1,37 @@
+[1. TAB 1: repo page]
+Hi, I'm Zeeshan, an AI engineer from Islamabad. I'll walk you through Fori, a speed-to-lead agent I built with Claude Code. It does what BuilderBot does for contractors: a new lead comes in, gets an answer in seconds, and gets booked.
+[2. VIDEO: play. 0:00 to 0:08 stay quiet]
+[0:09]
+A buyer from Zillow asks about a listing.
+[0:12]
+The agent replies in about two seconds, using only the listing facts.
+[0:15]
+Then it qualifies the buyer, one short question at a time: timeline, budget, financing.
+[0:33]
+Everything the buyer says lands on the agent's dashboard.
+[0:36]
+Once the buyer is qualified, it offers three real times from the agent's Google Calendar.
+[0:40]
+If the answer isn't in the listing, like property taxes, it doesn't guess. It hands off to the agent.
+[0:51]
+The buyer picks a time, it's booked, and the agent gets a text with everything she needs.
+[1:00]
+Every lead is logged in a Google Sheet,
+[1:09]
+and the showing is a real event in her calendar. Her busy times were never offered.
+[Stop the video]
+[3. TAB 2: prepare.js, mouse on line 77]
+Under the hood, it's an n8n workflow with the logic in JavaScript. This is the instruction to the AI model. It may only use the listing facts, and it returns JSON, not free text.
+[Mouse on line 83]
+It's told never to mention times or claim a booking. The code decides the next question, the time slots and the booking.
+[4. TAB 3: finish.js, mouse on line 113, badClaim]
+And I don't just trust the prompt. If the model still writes something like "you're booked", this line catches it and the code throws that sentence away. That's how I work with AI: I check its output instead of trusting it.
+[5. TAB 4: free_slots.js, mouse on lines 7 and 8]
+Here's the failure I designed for. In test mode, the Google connection expires every seven days. If the calendar can't be read, this marks it as disconnected. The buyer still gets a reply, but nothing is promised. The agent gets an alert to confirm the time herself, and the dashboard shows Google as disconnected.
+[6. TAB 5: google_lib.js, mouse on line 15]
+The calendar event ID is built from the lead ID, so if a booking is retried, it can never double-book.
+[7. TAB 1: scroll to the Tests table]
+Every change runs against 83 conversation checks, 16 tests against the real Google APIs, and 5 tests that simulate Google being down.
+[Look at the camera]
+What it doesn't do yet is reconnect the token by itself. Right now it escalates instead. Making things like that fix themselves is exactly what I'd love to do at BuilderBot. Thanks for watching.
+[STOP. Share, then Anyone with the link]
