@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Voice Prompter</title>
+<style>
+  :root { --bg: #0b0f14; --fg: #e8edf2; --dim: #5d6b7a; --done: #3b4652; --now: #ffd34d; --cue: #4fb3ff; --bar: #151c24; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--fg); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  #bar { position: fixed; top: 0; left: 0; right: 0; z-index: 2; display: flex; gap: 8px; align-items: center;
+         padding: 10px 16px calc(10px) 16px; background: var(--bar); border-bottom: 1px solid #222c36; }
+  #bar button { font: inherit; font-size: 15px; padding: 8px 12px; border-radius: 8px; border: 1px solid #2c3a48;
+                background: #1c2630; color: var(--fg); }
+  #go.on { background: #b3261e; border-color: #b3261e; }
+  #status { flex: 1; font-size: 13px; color: var(--dim); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  #text { padding: 45vh 16px 60vh; font-size: var(--size, 30px); line-height: 1.45; max-width: 900px; margin: 0 auto; }
+  #text p { margin: 0 0 0.8em; }
+  #text p.cue { color: var(--cue); font-size: 0.6em; font-weight: 700; letter-spacing: 0.02em; margin-top: 1.4em; }
+  .w { color: var(--fg); border-radius: 4px; }
+  .w.done { color: var(--done); }
+  .w.now { color: #111; background: var(--now); }
+  #edit { position: fixed; inset: 0; z-index: 3; background: var(--bg); padding: 16px; display: none; flex-direction: column; gap: 10px; }
+  #edit textarea { flex: 1; width: 100%; font: 16px/1.4 system-ui, sans-serif; background: #111820; color: var(--fg);
+                   border: 1px solid #2c3a48; border-radius: 8px; padding: 10px; }
+  #edit p { margin: 0; color: var(--dim); font-size: 14px; }
+  #edit button { font: inherit; padding: 12px; border-radius: 8px; border: 0; background: #2f6fda; color: #fff; }
+</style>
+</head>
+<body>
+<div id="bar">
+  <button id="go">Start</button>
+  <button id="smaller" aria-label="Smaller text">A-</button>
+  <button id="bigger" aria-label="Bigger text">A+</button>
+  <button id="editBtn">Edit</button>
+  <span id="status">Tap Start, then read.</span>
+</div>
+<div id="text"></div>
+<div id="edit">
+  <p>Paste your script. Lines starting with [ are cues: shown in blue, never read.</p>
+  <textarea id="src" spellcheck="false"></textarea>
+  <button id="save">Done</button>
+</div>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+
+  // Script source: link hash (#s=base64url) wins, then the saved copy.
+  function fromHash() {
+    const m = location.hash.match(/[#&]s=([^&]+)/);
+    if (!m) return null;
+    try {
+      const b64 = m[1].replace(/-/g, "+").replace(/_/g, "/");
+      const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+      return new TextDecoder().decode(bytes);
+    } catch (e) { return null; }
+  }
+  let script = fromHash() || store.get("prompter.script") || "[Tap Edit and paste your script]\nHello, this is a test. Start reading and the text follows your voice.";
+  store.set("prompter.script", script);
+
+  let size = parseInt(store.get("prompter.size") || "30", 10);
+  const applySize = () => { document.documentElement.style.setProperty("--size", size + "px"); store.set("prompter.size", String(size)); };
+  applySize();
+
+  // Words of spoken lines, normalized for matching.
+  const norm = w => w.toLowerCase().replace(/[’']/g, "").replace(/[^a-z0-9]+/g, "");
+  let words = [];   // {el, key}
+  let pos = 0;      // index of the next word to be spoken
+
+  function render() {
+    const box = $("text");
+    box.textContent = "";
+    words = [];
+    for (const raw of script.split(/\r?\n/)) {
+      const line = raw.trim();
+      if (!line) continue;
+      const p = document.createElement("p");
+      if (line.startsWith("[")) { p.className = "cue"; p.textContent = line; box.appendChild(p); continue; }
+      line.split(/\s+/).forEach((tok, i) => {
+        if (i) p.appendChild(document.createTextNode(" "));
+        const s = document.createElement("span");
+        s.className = "w";
+        s.textContent = tok;
+        const key = norm(tok);
+        if (key) {
+          const idx = words.length;
+          s.addEventListener("click", () => { pos = idx; paint(); });
+          words.push({ el: s, key });
+        }
+        p.appendChild(s);
+      });
+      box.appendChild(p);
+    }
+    pos = Math.min(pos, words.length);
+    paint();
+  }
+
+  let lastLine = null;
+  function paint() {
+    words.forEach((w, i) => {
+      w.el.className = "w" + (i < pos ? " done" : i === pos ? " now" : "");
+    });
+    const cur = words[Math.min(pos, words.length - 1)];
+    if (!cur) return;
+    // Scroll whenever the current word moves to a new visual line.
+    const line = cur.el.offsetTop;
+    if (line !== lastLine || pos === 0) {
+      lastLine = line;
+      const r = cur.el.getBoundingClientRect();
+      window.scrollTo({ top: window.scrollY + r.top - window.innerHeight * 0.35, behavior: "smooth" });
+    }
+  }
+
+  // Fuzzy word match: same word, or close enough for accents and recognizer slips.
+  function lev(a, b) {
+    if (Math.abs(a.length - b.length) > 2) return 9;
+    const d = Array.from({ length: b.length + 1 }, (_, j) => j);
+    for (let i = 1; i <= a.length; i++) {
+      let prev = d[0]; d[0] = i;
+      for (let j = 1; j <= b.length; j++) {
+        const t = d[j];
+        d[j] = Math.min(d[j] + 1, d[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1));
+        prev = t;
+      }
+    }
+    return d[b.length];
+  }
+  function same(a, b) {
+    if (a === b) return true;
+    if (a.length >= 4 && b.length >= 4 && (a.startsWith(b) || b.startsWith(a))) return true;
+    const n = Math.max(a.length, b.length);
+    return n >= 4 && lev(a, b) <= (n >= 7 ? 2 : 1);
+  }
+
+  // Align the last few heard words to the script near the current position; only move forward
+  // (a small step back is allowed when it is clearly a better match).
+  function follow(heard) {
+    const tail = heard.slice(-6);
+    if (!tail.length || !words.length) return;
+    let best = -1, bestScore = 0;
+    const from = Math.max(0, pos - 4), to = Math.min(words.length, pos + 45);
+    for (let end = from; end < to; end++) {
+      // score: how many tail words match, in order, ending at script index `end`
+      let score = 0, j = end;
+      for (let t = tail.length - 1; t >= 0 && j >= 0; t--) {
+        let hit = false;
+        for (let k = j; k >= Math.max(0, j - 2); k--) {
+          if (same(tail[t], words[k].key)) { score += 1 - (j - k) * 0.25; j = k - 1; hit = true; break; }
+        }
+        if (!hit) score -= 0.3;
+      }
+      const dist = Math.abs(end + 1 - pos);
+      score -= dist * 0.02;
+      if (score > bestScore) { bestScore = score; best = end; }
+    }
+    const need = tail.length >= 3 ? 1.8 : 0.9;
+    if (best >= 0 && bestScore >= need && best + 1 >= pos - 2) {
+      pos = best + 1;
+      paint();
+    }
+  }
+
+  // Speech recognition (Chrome / Android Chrome). Restarts itself after silences.
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null, running = false, wake = null;
+  const setStatus = t => { $("status").textContent = t; };
+
+  async function keepAwake(on) {
+    try {
+      if (on && "wakeLock" in navigator) wake = await navigator.wakeLock.request("screen");
+      else if (!on && wake) { await wake.release(); wake = null; }
+    } catch (e) {}
+  }
+
+  function start() {
+    if (!SR) { setStatus("Voice not supported here. Use Chrome. Tap words to move."); return; }
+    rec = new SR();
+    rec.lang = "en-US";
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.onresult = e => {
+      let text = "";
+      for (let i = Math.max(0, e.results.length - 3); i < e.results.length; i++) text += " " + e.results[i][0].transcript;
+      const heard = text.split(/\s+/).map(norm).filter(Boolean);
+      follow(heard);
+      setStatus("Listening: " + heard.slice(-5).join(" "));
+    };
+    rec.onerror = e => {
+      if (e.error === "not-allowed" || e.error === "service-not-allowed") { running = false; ui(); setStatus("Microphone blocked. Allow it in the browser and tap Start."); }
+    };
+    rec.onend = () => { if (running) { try { rec.start(); } catch (e) {} } };
+    try { rec.start(); running = true; setStatus("Listening..."); } catch (e) { setStatus("Could not start the microphone."); }
+    ui();
+    keepAwake(true);
+  }
+  function stop() {
+    running = false;
+    if (rec) { try { rec.stop(); } catch (e) {} }
+    ui();
+    keepAwake(false);
+    setStatus("Paused. Tap any word to jump there.");
+  }
+  const ui = () => { $("go").textContent = running ? "Stop" : "Start"; $("go").classList.toggle("on", running); };
+
+  $("go").onclick = () => running ? stop() : start();
+  $("smaller").onclick = () => { size = Math.max(18, size - 3); applySize(); };
+  $("bigger").onclick = () => { size = Math.min(60, size + 3); applySize(); };
+  $("editBtn").onclick = () => { if (running) stop(); $("src").value = script; $("edit").style.display = "flex"; };
+  $("save").onclick = () => {
+    script = $("src").value;
+    store.set("prompter.script", script);
+    $("edit").style.display = "none";
+    pos = 0; render();
+  };
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && running) keepAwake(true); });
+
+  render();
+  window.__prompter = { follow, get pos() { return pos; }, words: () => words.map(w => w.key) };
+})();
+</script>
+</body>
+</html>
